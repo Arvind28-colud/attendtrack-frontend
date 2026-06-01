@@ -3,8 +3,8 @@ import { api } from "../api/client";
 import { useFaceApi } from "../api/faceApi";
 import FaceCamera from "./FaceCamera";
 
-const DEPTS = ["Operator"];
-const empty = { full_name:"", email:"", aadhaar_no:"", department:"Operator", shift_hrs:8 };
+const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
+const empty = { full_name:"", email:"", aadhaar_no:"", department:"Engineering", shift_hrs:8 };
 
 export default function Employees() {
   const { ready: faceReady, error: faceError } = useFaceApi();
@@ -83,11 +83,11 @@ export default function Employees() {
             <div className="card-title">Register New Employee — Step 1 of 2: Details</div>
             <div className="form-group">
               <label className="form-label">Full Name</label>
-              <input placeholder="Aravind Kumar" value={form.full_name} onChange={e=>set("full_name",e.target.value)} />
+              <input placeholder="Your Name" value={form.full_name} onChange={e=>set("full_name",e.target.value)} />
             </div>
             <div className="form-group">
               <label className="form-label">Email</label>
-              <input type="email" placeholder="aravind@company.com" value={form.email} onChange={e=>set("email",e.target.value)} />
+              <input type="email" placeholder="youremail@gmail.com" value={form.email} onChange={e=>set("email",e.target.value)} />
             </div>
             <div className="form-group">
               <label className="form-label">Aadhaar Number (12 digits)</label>

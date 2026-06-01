@@ -1,4 +1,4 @@
-const BASE = "http://localhost:8000";
+const BASE = import.meta.env.VITE_API_URL || "https://attendtrack-backend-qlek.onrender.com";
 
 async function req(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
@@ -13,32 +13,21 @@ async function req(path, options = {}) {
 }
 
 export const api = {
-  // Employees
   getEmployees:    ()       => req("/employees"),
   getEmployee:     (id)     => req(`/employees/${id}`),
   createEmployee:  (data)   => req("/employees", { method:"POST", body:JSON.stringify(data) }),
   updateFace:      (id, fd) => req(`/employees/${id}/face`, { method:"PUT", body:JSON.stringify({ face_descriptor: fd }) }),
   deleteEmployee:  (id)     => req(`/employees/${id}`, { method:"DELETE" }),
   getAllFaces:      ()       => req("/employees/faces/all"),
-
-  // Clock
-  clock: (emp_id) => req("/clock", { method:"POST", body:JSON.stringify({ emp_id }) }),
-
-  // Attendance
-  getAttendance: (params={}) => {
+  clock:           (emp_id) => req("/clock", { method:"POST", body:JSON.stringify({ emp_id }) }),
+  getAttendance:   (params={}) => {
     const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([,v])=>v))).toString();
     return req(`/attendance${qs?"?"+qs:""}`);
   },
   getTodayAttendance: () => req("/attendance/today"),
-
-  // Dashboard
-  getDashboard: () => req("/dashboard"),
-
-  // Settings
-  getSettings:    ()     => req("/settings"),
-  updateSettings: (data) => req("/settings", { method:"PUT", body:JSON.stringify(data) }),
-
-  // Reports
+  getDashboard:    ()     => req("/dashboard"),
+  getSettings:     ()     => req("/settings"),
+  updateSettings:  (data) => req("/settings", { method:"PUT", body:JSON.stringify(data) }),
   getReportCSVUrl: (params={}) => {
     const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([,v])=>v))).toString();
     return `${BASE}/reports/csv${qs?"?"+qs:""}`;

@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
-const CDN = "/models";
+const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model";
+
 let modelsLoaded = false;
 let loadingPromise = null;
 
@@ -15,25 +16,21 @@ export function useFaceApi() {
         const faceapi = window.faceapi;
         if (!faceapi) throw new Error("face-api.js not loaded. Check index.html script tag.");
         await Promise.all([
-          faceapi.nets.ssdMobilenetv1.loadFromUri(CDN),
-          faceapi.nets.faceLandmark68Net.loadFromUri(CDN),
-          faceapi.nets.faceRecognitionNet.loadFromUri(CDN),
+          faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
         ]);
         modelsLoaded = true;
       })();
     }
     loadingPromise
       .then(() => setReady(true))
-      .catch((e) => setError(e.message));
+      .catch((e) => { setError(e.message); loadingPromise = null; });
   }, []);
 
   return { ready, error };
 }
 
-/**
- * Capture a single face descriptor from a video element.
- * Returns Float32Array or null if no face detected.
- */
 export async function captureDescriptor(videoEl) {
   const faceapi = window.faceapi;
   const detection = await faceapi
@@ -41,13 +38,9 @@ export async function captureDescriptor(videoEl) {
     .withFaceLandmarks()
     .withFaceDescriptor();
   if (!detection) return null;
-  return Array.from(detection.descriptor); // plain JS array for JSON storage
+  return Array.from(detection.descriptor);
 }
 
-/**
- * Compare a query descriptor against a list of { id, full_name, face_descriptor }.
- * Returns the best match if distance < threshold.
- */
 export function findBestMatch(queryDescriptor, knownFaces, threshold = 0.5) {
   const faceapi = window.faceapi;
   const query = new Float32Array(queryDescriptor);

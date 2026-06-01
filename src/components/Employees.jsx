@@ -3,8 +3,8 @@ import { api } from "../api/client";
 import { useFaceApi } from "../api/faceApi";
 import FaceCamera from "./FaceCamera";
 
-const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
-const empty = { full_name:"", email:"", aadhaar_no:"", department:"Engineering", shift_hrs:8 };
+const DEPTS = ["Operator"];
+const empty = { full_name:"", email:"", aadhaar_no:"", department:"", shift_hrs:8 };
 
 export default function Employees() {
   const { ready: faceReady, error: faceError } = useFaceApi();

@@ -105,7 +105,7 @@ export default function Register() {
   if (done) {
     return (
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:320, gap:"1rem" }}>
-        <div style={{ fontSize:64, color:"var(--green)" }}>✓</div>
+        <div style={{ fontSize:64, color:"var(--white)" }}>✓</div>
         <div style={{ fontSize:18, fontWeight:700, color:"var(--white)" }}>Employee Registered!</div>
         <div style={{ color:"var(--text3)", fontSize:13 }}>Registration complete. Redirecting...</div>
       </div>
@@ -211,7 +211,7 @@ export default function Register() {
               <div style={{ textAlign:"center", marginBottom:"1rem" }}>
                 <div style={{ fontSize:11, color:"var(--text3)", marginBottom:6, textTransform:"uppercase", letterSpacing:".06em" }}>Registered Face</div>
                 <img src={capturedImg} alt="Registered face"
-                  style={{ width:120, height:120, borderRadius:"50%", objectFit:"cover", border:"2px solid var(--green)", display:"inline-block" }} />
+                  style={{ width:120, height:120, borderRadius:"50%", objectFit:"cover", border:"2px solid var(--white)", display:"inline-block" }} />
               </div>
             )}
             <div className="form-group">

@@ -3,6 +3,7 @@ import Login        from "./components/Login";
 import ClockStation from "./components/ClockStation";
 import Dashboard    from "./components/Dashboard";
 import Employees    from "./components/Employees";
+import Register     from "./components/Register";
 import Attendance   from "./components/Attendance";
 import Reports      from "./components/Reports";
 import "./App.css";
@@ -10,6 +11,7 @@ import "./App.css";
 const TABS = [
   { id:"station",    label:"Clock-in",   icon:"ti-fingerprint"      },
   { id:"dashboard",  label:"Dashboard",  icon:"ti-layout-dashboard" },
+  { id:"register",   label:"Register",   icon:"ti-user-plus"        },
   { id:"employees",  label:"Employees",  icon:"ti-users"            },
   { id:"attendance", label:"Attendance", icon:"ti-calendar-stats"   },
   { id:"reports",    label:"Reports",    icon:"ti-report-money"     },
@@ -23,6 +25,7 @@ export default function App() {
     switch(active){
       case "station":    return <ClockStation />;
       case "dashboard":  return <Dashboard />;
+      case "register":   return <Register />;
       case "employees":  return <Employees />;
       case "attendance": return <Attendance />;
       case "reports":    return <Reports />;

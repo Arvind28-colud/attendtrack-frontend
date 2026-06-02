@@ -1,0 +1,249 @@
+import { useState } from "react";
+import { api } from "../api/client";
+import { useFaceApi } from "../api/faceApi";
+import FaceCamera from "./FaceCamera";
+
+const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
+const LOCATION = "Hyderabad Office";
+const empty = {
+  full_name:"", father_name:"", phone:"", email:"",
+  aadhaar_no:"", department:"Engineering",
+  source:"", location: LOCATION, shift_hrs: 8
+};
+
+export default function Register() {
+  const { ready: faceReady, error: faceError } = useFaceApi();
+  const [step,       setStep]       = useState(1);
+  const [form,       setForm]       = useState(empty);
+  const [newEmpId,   setNewEmpId]   = useState(null);
+  const [capturedImg, setCapturedImg] = useState(null);
+  const [alert,      setAlert]      = useState(null);
+  const [faceAlert,  setFaceAlert]  = useState(null);
+  const [aadhaarFile, setAadhaarFile] = useState(null);
+  const [aadhaarAlert, setAadhaarAlert] = useState(null);
+  const [uploading,  setUploading]  = useState(false);
+  const [done,       setDone]       = useState(false);
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // ── Step 1: Details ──────────────────────────────────────────
+  const handleSaveDetails = async () => {
+    setAlert(null);
+    if (!form.full_name.trim())   { setAlert({ type:"error", msg:"Full name is required." }); return; }
+    if (!form.father_name.trim()) { setAlert({ type:"error", msg:"Father name is required." }); return; }
+    if (!/^\d{10}$/.test(form.phone)) { setAlert({ type:"error", msg:"Phone must be exactly 10 digits." }); return; }
+    if (!form.email.trim())       { setAlert({ type:"error", msg:"Email is required." }); return; }
+    if (form.aadhaar_no.length !== 12 || !/^\d+$/.test(form.aadhaar_no)) {
+      setAlert({ type:"error", msg:"Aadhaar must be exactly 12 digits." }); return;
+    }
+    if (!form.source.trim()) { setAlert({ type:"error", msg:"Source (Referred by) is required." }); return; }
+    try {
+      const res = await api.createEmployee(form);
+      setNewEmpId(res.id);
+      setAlert(null);
+      setStep(2);
+    } catch(e) {
+      setAlert({ type:"error", msg: e.message });
+    }
+  };
+
+  // ── Step 2: Face capture ─────────────────────────────────────
+  const handleFaceCapture = async (descriptor, imageDataUrl) => {
+    setFaceAlert(null);
+    setCapturedImg(imageDataUrl);
+    try {
+      await api.updateFace(newEmpId, descriptor);
+      if (imageDataUrl) {
+        await api.updateFaceImage(newEmpId, imageDataUrl).catch(()=>{});
+      }
+      setFaceAlert({ type:"success", msg:"Face registered! Now upload Aadhaar PDF." });
+      setStep(3);
+    } catch(e) {
+      await api.deleteEmployee(newEmpId).catch(()=>{});
+      setNewEmpId(null);
+      setFaceAlert({ type:"error", msg:"Failed to save face. Employee removed. Try again: " + e.message });
+      setTimeout(() => { setStep(1); setFaceAlert(null); }, 3000);
+    }
+  };
+
+  // ── Step 3: Aadhaar PDF upload ───────────────────────────────
+  const handleAadhaarUpload = async () => {
+    if (!aadhaarFile) { setAadhaarAlert({ type:"error", msg:"Please select a PDF file." }); return; }
+    if (aadhaarFile.type !== "application/pdf") { setAadhaarAlert({ type:"error", msg:"Only PDF files are accepted." }); return; }
+    if (aadhaarFile.size > 5 * 1024 * 1024) { setAadhaarAlert({ type:"error", msg:"File too large. Max 5MB." }); return; }
+    setUploading(true);
+    setAadhaarAlert(null);
+    try {
+      const b64 = await fileToBase64(aadhaarFile);
+      await api.updateAadhaarPdf(newEmpId, b64);
+      setAadhaarAlert({ type:"success", msg:"Aadhaar uploaded successfully!" });
+      setTimeout(() => {
+        setDone(true);
+        setTimeout(() => {
+          setForm(empty); setStep(1); setNewEmpId(null);
+          setCapturedImg(null); setAadhaarFile(null); setDone(false);
+        }, 2000);
+      }, 800);
+    } catch(e) {
+      setAadhaarAlert({ type:"error", msg:"Upload failed: " + e.message });
+    } finally { setUploading(false); }
+  };
+
+  const handleSkipAadhaar = () => {
+    setDone(true);
+    setTimeout(() => {
+      setForm(empty); setStep(1); setNewEmpId(null);
+      setCapturedImg(null); setAadhaarFile(null); setDone(false);
+    }, 1500);
+  };
+
+  const handleCancelFace = async () => {
+    if (newEmpId) await api.deleteEmployee(newEmpId).catch(()=>{});
+    setNewEmpId(null); setStep(1); setFaceAlert(null); setAlert(null);
+  };
+
+  if (done) {
+    return (
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:320, gap:"1rem" }}>
+        <div style={{ fontSize:64, color:"var(--green)" }}>✓</div>
+        <div style={{ fontSize:18, fontWeight:700, color:"var(--white)" }}>Employee Registered!</div>
+        <div style={{ color:"var(--text3)", fontSize:13 }}>Registration complete. Redirecting...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth:560, margin:"0 auto" }}>
+      {/* Progress */}
+      <div className="reg-steps">
+        {["Details","Face","Aadhaar PDF"].map((label,i)=>(
+          <div key={i} className={`reg-step ${step===i+1?"active":step>i+1?"done":""}`}>
+            <div className="reg-step-num">{step > i+1 ? "✓" : i+1}</div>
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="card">
+        {/* ── Step 1 ── */}
+        {step === 1 && (
+          <>
+            <div className="card-title">New Employee — Step 1: Details</div>
+            <div className="form-group">
+              <label className="form-label">Full Name</label>
+              <input placeholder="e.g. Ravi Kumar" value={form.full_name} onChange={e=>set("full_name",e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Father's Name</label>
+              <input placeholder="e.g. Suresh Kumar" value={form.father_name} onChange={e=>set("father_name",e.target.value)} />
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Phone Number</label>
+                <input placeholder="10 digits" maxLength={10} value={form.phone}
+                  onChange={e=>set("phone",e.target.value.replace(/\D/g,""))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input type="email" placeholder="email@example.com" value={form.email} onChange={e=>set("email",e.target.value)} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Aadhaar Number (12 digits)</label>
+              <input placeholder="xxxxxxxxxxxx" maxLength={12} value={form.aadhaar_no}
+                onChange={e=>set("aadhaar_no",e.target.value.replace(/\D/g,""))} />
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Department</label>
+                <select value={form.department} onChange={e=>set("department",e.target.value)}>
+                  {DEPTS.map(d=><option key={d}>{d}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Source (Referred by)</label>
+                <input placeholder="e.g. Raju, Indeed, Walk-in" value={form.source}
+                  onChange={e=>set("source",e.target.value)} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Location</label>
+              <input value={LOCATION} disabled style={{ opacity:.6, cursor:"not-allowed" }} />
+            </div>
+            {alert && <div className={`alert alert-${alert.type}`}>{alert.msg}</div>}
+            <button className="btn btn-primary full-width" onClick={handleSaveDetails}>
+              Next → Face Registration
+            </button>
+          </>
+        )}
+
+        {/* ── Step 2 ── */}
+        {step === 2 && (
+          <>
+            <div className="card-title">Step 2: Face Registration</div>
+            {!faceReady && !faceError && (
+              <div className="face-loading">
+                <div className="face-spinner"/>
+                <span>Loading face recognition models...</span>
+              </div>
+            )}
+            {faceError && <div className="alert alert-error">{faceError}</div>}
+            {faceReady && (
+              <>
+                <div className="alert alert-info" style={{ marginBottom:"0.75rem" }}>
+                  Look directly at the camera — face will be captured automatically.
+                </div>
+                <FaceCamera onCapture={handleFaceCapture} showRetake={true} autoCapture={true} captureImage={true} />
+              </>
+            )}
+            {faceAlert && <div className={`alert alert-${faceAlert.type}`}>{faceAlert.msg}</div>}
+            <button className="btn full-width" style={{ marginTop:"0.5rem", color:"#991b1b" }} onClick={handleCancelFace}>
+              ← Cancel & go back
+            </button>
+          </>
+        )}
+
+        {/* ── Step 3 ── */}
+        {step === 3 && (
+          <>
+            <div className="card-title">Step 3: Upload Aadhaar PDF</div>
+            {capturedImg && (
+              <div style={{ textAlign:"center", marginBottom:"1rem" }}>
+                <div style={{ fontSize:11, color:"var(--text3)", marginBottom:6, textTransform:"uppercase", letterSpacing:".06em" }}>Registered Face</div>
+                <img src={capturedImg} alt="Registered face"
+                  style={{ width:120, height:120, borderRadius:"50%", objectFit:"cover", border:"2px solid var(--green)", display:"inline-block" }} />
+              </div>
+            )}
+            <div className="form-group">
+              <label className="form-label">Aadhaar Card PDF</label>
+              <div className="pdf-upload-area" onClick={()=>document.getElementById("aadhaar-pdf-input").click()}>
+                {aadhaarFile
+                  ? <><div className="pdf-icon">📄</div><div className="pdf-name">{aadhaarFile.name}</div><div style={{fontSize:11,color:"var(--text3)"}}>({(aadhaarFile.size/1024).toFixed(1)} KB)</div></>
+                  : <><div className="pdf-icon">⬆</div><div style={{fontSize:13,color:"var(--text3)"}}>Click to upload Aadhaar PDF</div><div style={{fontSize:11,color:"var(--text3)",marginTop:3}}>Max 5MB · PDF only</div></>
+                }
+              </div>
+              <input id="aadhaar-pdf-input" type="file" accept=".pdf,application/pdf"
+                style={{ display:"none" }} onChange={e=>{ if(e.target.files[0]) setAadhaarFile(e.target.files[0]); }} />
+            </div>
+            {aadhaarAlert && <div className={`alert alert-${aadhaarAlert.type}`}>{aadhaarAlert.msg}</div>}
+            <button className="btn btn-primary full-width" onClick={handleAadhaarUpload} disabled={uploading || !aadhaarFile}>
+              {uploading ? "Uploading..." : "Upload & Complete Registration"}
+            </button>
+            <button className="btn full-width" style={{ marginTop:".4rem", color:"var(--text3)" }} onClick={handleSkipAadhaar}>
+              Skip for now
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = () => res(r.result.split(",")[1]);
+    r.onerror = () => rej(new Error("Read failed"));
+    r.readAsDataURL(file);
+  });
+}

@@ -3,35 +3,36 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  /* Dark theme palette */
-  --bg:         #0a0a0a;
-  --bg2:        #111111;
-  --bg3:        #1a1a1a;
-  --bg4:        #222222;
-  --surface:    #141414;
-  --surface2:   #1e1e1e;
-  --border:     #2a2a2a;
-  --border2:    #333333;
-  --border3:    #404040;
+  /* ── Black & White theme ── */
+  --bg:         #000000;
+  --bg2:        #0a0a0a;
+  --bg3:        #111111;
+  --bg4:        #1a1a1a;
+  --surface:    #0d0d0d;
+  --surface2:   #161616;
+  --border:     #242424;
+  --border2:    #303030;
+  --border3:    #484848;
 
-  --text:       #f5f5f5;
-  --text2:      #a3a3a3;
-  --text3:      #666666;
+  --text:       #ffffff;
+  --text2:      #b0b0b0;
+  --text3:      #606060;
 
   --white:      #ffffff;
   --black:      #000000;
 
-  --green:      #22c55e;
-  --green-bg:   rgba(34,197,94,.12);
-  --green-bd:   rgba(34,197,94,.25);
-  --red:        #ef4444;
-  --red-bg:     rgba(239,68,68,.12);
-  --red-bd:     rgba(239,68,68,.25);
-  --amber:      #f59e0b;
-  --amber-bg:   rgba(245,158,11,.12);
-  --amber-bd:   rgba(245,158,11,.25);
-  --blue:       #60a5fa;
-  --blue-bg:    rgba(96,165,250,.12);
+  /* Status colours replaced with B&W equivalents */
+  --green:      #ffffff;
+  --green-bg:   rgba(255,255,255,.07);
+  --green-bd:   rgba(255,255,255,.18);
+  --red:        #ffffff;
+  --red-bg:     rgba(255,255,255,.05);
+  --red-bd:     rgba(255,255,255,.12);
+  --amber:      #d4d4d4;
+  --amber-bg:   rgba(255,255,255,.06);
+  --amber-bd:   rgba(255,255,255,.14);
+  --blue:       #e0e0e0;
+  --blue-bg:    rgba(255,255,255,.06);
 
   --r:    8px;
   --r-lg: 14px;
@@ -165,17 +166,17 @@ input::placeholder{color:var(--text3)}
 
 /* ── Badges ─────────────────────────────────────────────────── */
 .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.01em}
-.badge-in    {background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.badge-in    {background:rgba(255,255,255,.10);color:var(--white);border:1px solid rgba(255,255,255,.22)}
 .badge-absent{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
-.badge-ot    {background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
-.badge-work  {background:var(--blue-bg);color:var(--blue);border:1px solid rgba(96,165,250,.25)}
+.badge-ot    {background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.15)}
+.badge-work  {background:rgba(255,255,255,.06);color:var(--text2);border:1px solid rgba(255,255,255,.12)}
 .badge-dept  {background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
 
 /* ── Alerts ─────────────────────────────────────────────────── */
 .alert{padding:.75rem 1rem;border-radius:var(--r);font-size:13px;font-weight:500;margin-bottom:.85rem}
-.alert-success{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
-.alert-error  {background:var(--red-bg);  color:var(--red);  border:1px solid var(--red-bd)}
-.alert-info   {background:var(--bg3);     color:var(--text2);border:1px solid var(--border2)}
+.alert-success{background:rgba(255,255,255,.08);color:var(--white);border:1px solid rgba(255,255,255,.2)}
+.alert-error  {background:rgba(255,255,255,.04);color:var(--text2);border:1px solid rgba(255,255,255,.12)}
+.alert-info   {background:var(--bg3);          color:var(--text2);border:1px solid var(--border2)}
 
 /* ── Table ──────────────────────────────────────────────────── */
 .table-wrap{overflow-x:auto}
@@ -250,7 +251,7 @@ tr:hover td{background:var(--bg3)}
 .fc-scan-bar{
   position:absolute;left:50%;transform:translateX(-50%);
   width:260px;height:2px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);
   animation:fcScan 1s linear infinite;pointer-events:none;
 }
 @keyframes fcScan{0%{top:5%}100%{top:95%}}
@@ -263,14 +264,14 @@ tr:hover td{background:var(--bg3)}
 .fc-done-box{
   position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  background:var(--green-bg);gap:.5rem;
+  background:rgba(255,255,255,.06);gap:.5rem;
 }
-.fc-done-check{font-size:64px;color:var(--green);line-height:1}
-.fc-done-text{font-size:15px;font-weight:700;color:var(--green)}
+.fc-done-check{font-size:64px;color:var(--white);line-height:1}
+.fc-done-text{font-size:15px;font-weight:700;color:var(--white)}
 .fc-status{display:flex;align-items:center;gap:.5rem;font-size:12px;font-weight:500;color:var(--text3);padding:.35rem 0}
 .fc-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--border2)}
-.fc-status-dot.pulse{background:var(--amber);animation:dotPulse 1s ease-in-out infinite}
-.fc-status-dot.green{background:var(--green)}
+.fc-status-dot.pulse{background:var(--text2);animation:dotPulse 1s ease-in-out infinite}
+.fc-status-dot.green{background:var(--white)}
 @keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.3}}
 .face-spinner{border-style:solid;border-color:var(--border2);border-top-color:var(--white);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;width:20px;height:20px;border-width:2px}
 .face-spinner.large{width:32px;height:32px;border-width:3px}
@@ -313,7 +314,7 @@ tr:hover td{background:var(--bg3)}
 .payslip-row.total{background:var(--bg3);font-weight:700}
 .payslip-row.total span{color:var(--white)!important}
 .payslip-row.deduct span:first-child{color:var(--text2)}
-.payslip-row.deduct span:last-child{color:var(--red)!important;font-weight:600}
+.payslip-row.deduct span:last-child{color:var(--text3)!important;font-weight:600}
 .payslip-row.net{background:var(--white)}
 .payslip-row.net span{color:var(--black)!important;font-weight:800;font-size:14px}
 
@@ -394,4 +395,96 @@ tr:hover td{background:var(--bg3)}
   .metrics-grid{grid-template-columns:1fr 1fr}
   .metric-value{font-size:24px}
   .clock-display{font-size:34px}
+}
+/* ── Register Steps ─────────────────────────────────────────── */
+.reg-steps{
+  display:flex;align-items:center;gap:0;margin-bottom:1.25rem;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:.75rem 1.25rem;
+}
+.reg-step{
+  display:flex;align-items:center;gap:.5rem;font-size:12px;
+  font-weight:600;color:var(--text3);flex:1;
+}
+.reg-step:not(:last-child)::after{
+  content:"→";margin-left:auto;color:var(--border3);font-size:14px;
+}
+.reg-step-num{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--bg4);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:var(--text3);flex-shrink:0;
+}
+.reg-step.active .reg-step-num{background:var(--white);color:var(--black);border-color:var(--white)}
+.reg-step.active{color:var(--white)}
+.reg-step.done .reg-step-num{background:var(--white);color:var(--black);border-color:var(--white)}
+.reg-step.done{color:var(--text2)}
+
+/* ── PDF Upload Area ────────────────────────────────────────── */
+.pdf-upload-area{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:110px;background:var(--bg3);border:2px dashed var(--border2);
+  border-radius:var(--r-lg);cursor:pointer;gap:.4rem;padding:1rem;
+  transition:border-color .15s;
+}
+.pdf-upload-area:hover{border-color:var(--border3)}
+.pdf-icon{font-size:28px;line-height:1}
+.pdf-name{font-size:13px;font-weight:600;color:var(--white);word-break:break-all;text-align:center}
+
+/* ── Employee Registration Cards ────────────────────────────── */
+.emp-cards-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:1rem;
+}
+.emp-reg-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:1.25rem;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;transition:border-color .15s;
+}
+.emp-reg-card:hover{border-color:var(--border3)}
+.emp-reg-photo{
+  width:80px;height:80px;border-radius:50%;
+  background:var(--bg4);border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:800;color:var(--white);
+  margin-bottom:.75rem;overflow:hidden;flex-shrink:0;
+}
+.emp-reg-name{font-size:14px;font-weight:700;color:var(--white);margin-bottom:2px}
+.emp-reg-dept{font-size:11px;color:var(--text3);margin-bottom:.75rem;
+  background:var(--bg3);padding:2px 10px;border-radius:20px;border:1px solid var(--border)}
+.emp-reg-details{width:100%;text-align:left}
+.emp-reg-row{
+  display:flex;justify-content:space-between;font-size:11px;
+  padding:4px 0;border-bottom:1px solid var(--border);gap:.5rem;
+}
+.emp-reg-row:last-child{border-bottom:none}
+.emp-reg-row span:first-child{color:var(--text3);flex-shrink:0}
+.emp-reg-row span:last-child{color:var(--text);font-weight:500;text-align:right;word-break:break-all}
+
+/* ── Modal ──────────────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:200;display:flex;align-items:center;justify-content:center;
+  padding:1rem;
+}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--r-xl);width:100%;max-width:820px;
+  max-height:90vh;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 32px 80px rgba(0,0,0,.8);
+}
+.modal-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1rem 1.25rem;border-bottom:1px solid var(--border2);flex-shrink:0;
+}
+.modal-body{padding:1.25rem;overflow-y:auto;flex:1}
+
+@media(max-width:768px){
+  .emp-cards-grid{grid-template-columns:1fr 1fr}
+  .modal-box{max-height:95vh}
+}
+@media(max-width:480px){
+  .emp-cards-grid{grid-template-columns:1fr}
+  .reg-steps{padding:.5rem .75rem}
 }

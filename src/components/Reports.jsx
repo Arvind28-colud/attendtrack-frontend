@@ -122,7 +122,7 @@ function InvoiceModal({ invoiceData, settings, onClose }) {
                 ))}
                 <tr style={{ background:"var(--bg3)" }}>
                   <td colSpan={7} style={{ fontWeight:700, color:"var(--white)", fontSize:13 }}>Grand Total</td>
-                  <td style={{ fontWeight:800, fontSize:14, color:"var(--green)" }}>₹{grandTotal}</td>
+                  <td style={{ fontWeight:800, fontSize:14, color:"var(--white)" }}>₹{grandTotal}</td>
                 </tr>
               </tbody>
             </table>

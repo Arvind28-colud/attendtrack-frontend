@@ -232,4 +232,4 @@ function fileToBase64(file) {
     r.onerror = () => rej(new Error("Read failed"));
     r.readAsDataURL(file);
   });
-            }
+}

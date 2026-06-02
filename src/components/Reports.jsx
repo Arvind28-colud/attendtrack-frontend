@@ -341,12 +341,39 @@ export default function Reports() {
             : (
               <div className="emp-cards-grid">
                 {locationEmployees.map(e => (
-                  <div key={e.id} className="emp-reg-card">
+                  <div key={e.id} className="emp-reg-card" style={{ position:"relative" }}>
+                    <button
+                      title="Remove employee"
+                      onClick={async ()=>{
+                        if(!window.confirm(`Remove ${e.full_name}? This cannot be undone.`)) return;
+                        try {
+                          await api.deleteEmployee(e.id);
+                          setEmployees(prev => prev.filter(emp => emp.id !== e.id));
+                        } catch(err) { alert("Failed to remove: " + err.message); }
+                      }}
+                      style={{
+                        position:"absolute", top:10, right:10,
+                        background:"rgba(255,255,255,.06)", border:"1px solid var(--border2)",
+                        borderRadius:6, color:"var(--text3)", fontSize:13,
+                        cursor:"pointer", padding:"3px 7px", lineHeight:1,
+                      }}
+                    >✕</button>
                     <div className="emp-reg-photo">
                       {e.face_image
-                        ? <img src={e.face_image} alt={e.full_name} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }}/>
-                        : <span>{e.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span>
+                        ? <img
+                            src={e.face_image.startsWith("data:") ? e.face_image : `data:image/jpeg;base64,${e.face_image}`}
+                            alt={e.full_name}
+                            style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }}
+                            onError={ev=>{ ev.target.style.display="none"; ev.target.nextSibling.style.display="flex"; }}
+                          />
+                        : null
                       }
+                      {!e.face_image && (
+                        <span>{e.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span>
+                      )}
+                      {e.face_image && (
+                        <span style={{display:"none"}}>{e.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span>
+                      )}
                     </div>
                     <div className="emp-reg-name">{e.full_name}</div>
                     <div className="emp-reg-dept">{e.department}</div>
@@ -358,15 +385,31 @@ export default function Reports() {
                       <div className="emp-reg-row"><span>Source</span><span>{e.source||"—"}</span></div>
                       <div className="emp-reg-row"><span>Location</span><span>{e.location||"—"}</span></div>
                     </div>
-                    {e.aadhaar_pdf && (
-                      <button className="btn" style={{ marginTop:".75rem", width:"100%", fontSize:11, padding:"6px 10px" }}
-                        onClick={()=>{
-                          const link=document.createElement("a");
-                          link.href="data:application/pdf;base64,"+e.aadhaar_pdf;
-                          link.download=`${e.full_name}-aadhaar.pdf`; link.click();
-                        }}>
-                        📄 Download Aadhaar PDF
-                      </button>
+                    {e.aadhaar_pdf ? (
+                      <div style={{ display:"flex", gap:".4rem", marginTop:".75rem", width:"100%" }}>
+                        <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
+                          onClick={()=>{
+                            const pdfData = e.aadhaar_pdf.startsWith("data:") ? e.aadhaar_pdf : `data:application/pdf;base64,${e.aadhaar_pdf}`;
+                            const win = window.open("","_blank");
+                            win.document.write(`<html><body style="margin:0"><embed src="${pdfData}" type="application/pdf" width="100%" height="100%"/></body></html>`);
+                            win.document.close();
+                          }}>
+                          👁 View
+                        </button>
+                        <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
+                          onClick={()=>{
+                            const link = document.createElement("a");
+                            link.href = e.aadhaar_pdf.startsWith("data:") ? e.aadhaar_pdf : `data:application/pdf;base64,${e.aadhaar_pdf}`;
+                            link.download = `${e.full_name}-aadhaar.pdf`;
+                            link.click();
+                          }}>
+                          ↓ Download
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ marginTop:".75rem", fontSize:11, color:"var(--text3)", textAlign:"center" }}>
+                        No Aadhaar PDF uploaded
+                      </div>
                     )}
                   </div>
                 ))}

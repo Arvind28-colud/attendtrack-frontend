@@ -197,6 +197,7 @@ export default function Reports() {
   const [alert,         setAlert]         = useState(null);
   const [savingSettings,setSaving]        = useState(false);
   const [invoiceData,   setInvoiceData]   = useState(null);
+  const [viewPhoto,     setViewPhoto]     = useState(null); // { src, name }
   const [activeTab,     setActiveTab]     = useState("employees"); // "employees" | "payroll"
 
   useEffect(() => {
@@ -303,6 +304,21 @@ export default function Reports() {
         />
       )}
 
+      {/* Photo lightbox */}
+      {viewPhoto && (
+        <div
+          onClick={()=>setViewPhoto(null)}
+          style={{
+            position:"fixed", inset:0, background:"rgba(0,0,0,.9)",
+            zIndex:300, display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center", gap:"1rem", cursor:"pointer"
+          }}>
+          <img src={viewPhoto.src} alt={viewPhoto.name}
+            style={{ maxWidth:"90vw", maxHeight:"80vh", borderRadius:"var(--r-lg)", objectFit:"contain" }} />
+          <div style={{ color:"#ccc", fontSize:13 }}>{viewPhoto.name} — click anywhere to close</div>
+        </div>
+      )}
+
       {/* ── Tab switcher ── */}
       <div style={{ display:"flex", gap:".5rem", marginBottom:"1rem" }}>
         <button className={`toggle-btn ${activeTab==="employees"?"active":""}`}
@@ -358,7 +374,12 @@ export default function Reports() {
                         cursor:"pointer", padding:"3px 7px", lineHeight:1,
                       }}
                     >✕</button>
-                    <div className="emp-reg-photo">
+                    <div
+                      className="emp-reg-photo"
+                      onClick={()=>{ if(e.face_image){ const src=e.face_image.startsWith("data:")?e.face_image:`data:image/jpeg;base64,${e.face_image}`; setViewPhoto({src, name:e.full_name}); }}}
+                      style={{ cursor: e.face_image ? "pointer" : "default", position:"relative" }}
+                      title={e.face_image ? "Click to view full photo" : ""}
+                    >
                       {e.face_image
                         ? <img
                             src={e.face_image.startsWith("data:") ? e.face_image : `data:image/jpeg;base64,${e.face_image}`}
@@ -373,6 +394,15 @@ export default function Reports() {
                       )}
                       {e.face_image && (
                         <span style={{display:"none"}}>{e.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span>
+                      )}
+                      {e.face_image && (
+                        <div style={{
+                          position:"absolute", bottom:0, right:0,
+                          width:20, height:20, borderRadius:"50%",
+                          background:"var(--surface)", border:"1px solid var(--border2)",
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          fontSize:10, color:"var(--text3)"
+                        }}>⤢</div>
                       )}
                     </div>
                     <div className="emp-reg-name">{e.full_name}</div>

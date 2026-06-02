@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import { useFaceApi } from "../api/faceApi";
-import FaceCamera from "./FaceCamera";
+import RegisterCamera from "./RegisterCamera";
 
 const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
 const LOCATION = "Hyderabad Office";
@@ -181,23 +181,9 @@ export default function Register() {
         {step === 2 && (
           <>
             <div className="card-title">Step 2: Face Registration</div>
-            {!faceReady && !faceError && (
-              <div className="face-loading">
-                <div className="face-spinner"/>
-                <span>Loading face recognition models...</span>
-              </div>
-            )}
-            {faceError && <div className="alert alert-error">{faceError}</div>}
-            {faceReady && (
-              <>
-                <div className="alert alert-info" style={{ marginBottom:"0.75rem" }}>
-                  Look directly at the camera — face will be captured automatically.
-                </div>
-                <FaceCamera onCapture={handleFaceCapture} showRetake={true} autoCapture={true} captureImage={true} />
-              </>
-            )}
-            {faceAlert && <div className={`alert alert-${faceAlert.type}`}>{faceAlert.msg}</div>}
-            <button className="btn full-width" style={{ marginTop:"0.5rem", color:"#991b1b" }} onClick={handleCancelFace}>
+            <RegisterCamera onCapture={handleFaceCapture} />
+            {faceAlert && <div className={`alert alert-${faceAlert.type}`} style={{ marginTop:".5rem" }}>{faceAlert.msg}</div>}
+            <button className="btn full-width" style={{ marginTop:"0.5rem", color:"var(--text3)" }} onClick={handleCancelFace}>
               ← Cancel & go back
             </button>
           </>
@@ -246,4 +232,4 @@ function fileToBase64(file) {
     r.onerror = () => rej(new Error("Read failed"));
     r.readAsDataURL(file);
   });
-}
+            }

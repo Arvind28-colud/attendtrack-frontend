@@ -10,61 +10,100 @@ const LOCATIONS = ["Hyderabad Office"];
 
 function timeBefore(t, limit) { return t ? t <= limit : false; }
 
+// ── Signature generator ──────────────────────────────────────────
+function makeSignature(name) {
+  if (!name) return "";
+  const styles = [
+    { font:"'Dancing Script', cursive", color:"#ccc",    size:28, slant:"italic"  },
+    { font:"'Pacifico', cursive",        color:"#bbb",    size:24, slant:"normal"  },
+    { font:"'Sacramento', cursive",      color:"#d4d4d4", size:32, slant:"italic"  },
+    { font:"'Great Vibes', cursive",     color:"#c8c8c8", size:30, slant:"italic"  },
+  ];
+  // pick style deterministically from name
+  const idx = name.split("").reduce((s,c) => s + c.charCodeAt(0), 0) % styles.length;
+  return styles[idx];
+}
+
 // ── Invoice Editor Modal ─────────────────────────────────────────
-function InvoiceModal({ invoiceData, settings, onClose }) {
-  const [rows, setRows] = useState(invoiceData.employees.map(e => ({
-    name:     e.name,
-    dept:     e.dept,
-    days:     e.present,
-    otHrs:    +e.otHrs.toFixed(1),
-    dayPay:   +e.dayPay.toFixed(2),
-    otPay:    +e.otPay.toFixed(2),
-    food:     +e.food.toFixed(2),
-    total:    +(e.dayPay + e.otPay + e.food).toFixed(2),
-  })));
+function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
+  // Find source person's account details
+  const getAccountDetails = () => {
+    const src = invoiceData.source;
+    if (!src) return { account_name:"", account_number:"", ifsc:"", pan:"" };
+    // Find employee whose full_name matches source string
+    const srcEmp = allEmployees.find(e =>
+      e.full_name.toLowerCase().trim() === src.toLowerCase().trim()
+    );
+    if (srcEmp) return {
+      account_name:   srcEmp.account_name   || srcEmp.full_name || "",
+      account_number: srcEmp.account_number || "",
+      ifsc:           srcEmp.ifsc           || "",
+      pan:            srcEmp.pan            || "",
+    };
+    return { account_name: src, account_number:"", ifsc:"", pan:"" };
+  };
+
+  const initAccount = getAccountDetails();
+  const sigStyle    = makeSignature(invoiceData.source);
+
   const [invoiceNo,  setInvoiceNo]  = useState(`INV-${Date.now().toString().slice(-6)}`);
   const [invoiceDate,setInvoiceDate]= useState(new Date().toISOString().slice(0,10));
-  const [notes,      setNotes]      = useState("");
+  const [account,    setAccount]    = useState(initAccount);
+  const [rows, setRows] = useState(invoiceData.employees.map(e => ({
+    description: "",
+    ot:          "",
+    perDay:      settings.pay_per_day || 500,
+    totalDays:   e.present || 0,
+    fees:        +((e.present || 0) * (settings.pay_per_day || 500)).toFixed(2),
+  })));
   const printRef = useRef(null);
 
+  const setAcc = (k, v) => setAccount(a => ({ ...a, [k]: v }));
   const updateRow = (i, field, val) => {
     setRows(r => r.map((row, idx) => {
       if (idx !== i) return row;
       const updated = { ...row, [field]: val };
-      updated.total = +(parseFloat(updated.dayPay||0) + parseFloat(updated.otPay||0) + parseFloat(updated.food||0)).toFixed(2);
+      // auto-calc fees when perDay or totalDays change
+      if (field === "perDay" || field === "totalDays") {
+        updated.fees = +(parseFloat(updated.perDay||0) * parseFloat(updated.totalDays||0)).toFixed(2);
+      }
       return updated;
     }));
   };
-
-  const grandTotal = rows.reduce((s,r) => s + parseFloat(r.total||0), 0).toFixed(2);
+  const grandTotal = rows.reduce((s,r) => s + parseFloat(r.fees||0), 0).toFixed(2);
 
   const handlePrint = () => {
+    // Load cursive fonts for print
+    const fontLink = `<link rel="preconnect" href="https://fonts.googleapis.com">
+      <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&family=Sacramento&family=Great+Vibes&display=swap" rel="stylesheet">`;
     const content = printRef.current.innerHTML;
     const win = window.open("","_blank","width=900,height=700");
-    win.document.write(`
-      <html><head><title>Invoice - ${invoiceData.source}</title>
+    win.document.write(`<html><head><title>Invoice - ${invoiceData.source}</title>${fontLink}
       <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Inter',Arial,sans-serif;padding:40px;color:#111;background:#fff}
-        h1{font-size:28px;font-weight:800;margin-bottom:4px}
-        .sub{color:#666;font-size:13px;margin-bottom:24px}
-        .meta{display:flex;justify-content:space-between;margin-bottom:28px;font-size:13px}
-        .meta div{display:flex;flex-direction:column;gap:4px}
-        .meta b{font-weight:700}
-        table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px}
-        th{text-align:left;padding:9px 10px;background:#f4f4f4;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid #e5e5e5}
-        td{padding:9px 10px;border-bottom:1px solid #f0f0f0}
-        tr:last-child td{border-bottom:none}
-        .grand{background:#111;color:#fff;font-weight:800;font-size:15px}
-        .grand td{padding:12px 10px;border-bottom:none}
-        .notes{font-size:12px;color:#666;border-top:1px solid #e5e5e5;padding-top:16px;margin-top:8px}
-        @media print{body{padding:20px}}
-      </style></head><body>${content}</body></html>
-    `);
-    win.document.close();
-    win.focus();
-    setTimeout(()=>{ win.print(); win.close(); }, 400);
+        body{font-family:Arial,sans-serif;padding:40px;color:#111;background:#fff;font-size:13px}
+        .inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;border-bottom:2px solid #111;padding-bottom:16px}
+        .inv-name{font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+        .inv-meta{text-align:right;font-size:12px;line-height:1.7}
+        .inv-meta b{font-size:16px;font-weight:800}
+        .bill-to{background:#f5f5f5;padding:12px 16px;border-radius:6px;margin-bottom:24px;font-size:12px;line-height:1.6}
+        .bill-to-label{font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+        table{width:100%;border-collapse:collapse;margin-bottom:24px}
+        th{background:#111;color:#fff;padding:9px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+        td{padding:9px 10px;border-bottom:1px solid #eee;font-size:12px}
+        .total-row td{font-weight:800;border-top:2px solid #111;border-bottom:none;font-size:14px}
+        .bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;border-top:1px solid #eee;padding-top:20px}
+        .acc-details{font-size:11px;line-height:1.9}
+        .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666}
+        .sig-area{text-align:center}
+        .sig-text{font-size:${sigStyle?sigStyle.size:28}px;font-family:${sigStyle?sigStyle.font:"cursive"};font-style:${sigStyle?sigStyle.slant:"italic"};color:#111;line-height:1.1}
+        .sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-top:6px;border-top:1px solid #999;padding-top:4px}
+      </style></head><body>${content}</body></html>`);
+    win.document.close(); win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 600);
   };
+
+  const BILL_TO = "Timing Technologies India Private Limited, My Home Hub, Hitech City Rd, Patrika Nagar, HITECH City, Hyderabad, Telangana 500081";
 
   return (
     <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
@@ -72,20 +111,20 @@ function InvoiceModal({ invoiceData, settings, onClose }) {
         <div className="modal-header">
           <div>
             <div style={{ fontWeight:700, fontSize:15, color:"var(--white)" }}>
-              Invoice — {invoiceData.source}
+              Invoice — {invoiceData.source || "Unknown Source"}
             </div>
             <div style={{ fontSize:12, color:"var(--text3)", marginTop:2 }}>
-              Edit before downloading as PDF
+              Edit then download as PDF
             </div>
           </div>
-          <button className="btn" style={{ padding:"6px 12px" }} onClick={onClose}>✕ Close</button>
+          <button className="btn" style={{ padding:"6px 12px" }} onClick={onClose}>✕</button>
         </div>
 
         <div className="modal-body">
-          {/* Invoice meta */}
+          {/* Invoice No + Date */}
           <div className="form-row" style={{ marginBottom:"1rem" }}>
             <div className="form-group">
-              <label className="form-label">Invoice Number</label>
+              <label className="form-label">Invoice No</label>
               <input value={invoiceNo} onChange={e=>setInvoiceNo(e.target.value)} />
             </div>
             <div className="form-group">
@@ -94,90 +133,137 @@ function InvoiceModal({ invoiceData, settings, onClose }) {
             </div>
           </div>
 
-          {/* Editable table */}
+          {/* Bill To — fixed */}
+          <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:"var(--r)", padding:"10px 12px", marginBottom:"1rem", fontSize:12, color:"var(--text2)" }}>
+            <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:".07em", color:"var(--text3)", marginBottom:4 }}>Bill To (fixed)</div>
+            {BILL_TO}
+          </div>
+
+          {/* Description rows */}
           <div style={{ fontSize:11, fontWeight:700, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".5rem" }}>
-            Employee Pay Details
+            Description
           </div>
           <div className="table-wrap" style={{ marginBottom:"1rem" }}>
             <table>
               <thead>
                 <tr>
-                  <th>Name</th><th>Dept</th><th>Days</th>
-                  <th>OT Hrs</th><th>Day Pay (₹)</th>
-                  <th>OT Pay (₹)</th><th>Food (₹)</th><th>Total (₹)</th>
+                  <th style={{width:"35%"}}>Description</th>
+                  <th>OT</th>
+                  <th>Per Day (₹)</th>
+                  <th>Total Days</th>
+                  <th>Fees (₹)</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r,i)=>(
                   <tr key={i}>
-                    <td><input value={r.name} onChange={e=>updateRow(i,"name",e.target.value)} style={{width:120,padding:"4px 6px",fontSize:12}}/></td>
-                    <td><input value={r.dept} onChange={e=>updateRow(i,"dept",e.target.value)} style={{width:90,padding:"4px 6px",fontSize:12}}/></td>
-                    <td><input type="number" value={r.days} onChange={e=>updateRow(i,"days",e.target.value)} style={{width:55,padding:"4px 6px",fontSize:12}}/></td>
-                    <td><input type="number" value={r.otHrs} onChange={e=>updateRow(i,"otHrs",e.target.value)} style={{width:60,padding:"4px 6px",fontSize:12}}/></td>
-                    <td><input type="number" value={r.dayPay} onChange={e=>updateRow(i,"dayPay",e.target.value)} style={{width:80,padding:"4px 6px",fontSize:12}}/></td>
-                    <td><input type="number" value={r.otPay} onChange={e=>updateRow(i,"otPay",e.target.value)} style={{width:70,padding:"4px 6px",fontSize:12}}/></td>
-                    <td><input type="number" value={r.food} onChange={e=>updateRow(i,"food",e.target.value)} style={{width:70,padding:"4px 6px",fontSize:12}}/></td>
-                    <td style={{fontWeight:700,color:"var(--white)"}}>₹{r.total}</td>
+                    <td><input value={r.description} onChange={e=>updateRow(i,"description",e.target.value)}
+                      placeholder="e.g. HYD MUMBAI APRIL 2026" style={{width:"100%",padding:"4px 6px",fontSize:12}}/></td>
+                    <td><input value={r.ot} onChange={e=>updateRow(i,"ot",e.target.value)}
+                      style={{width:60,padding:"4px 6px",fontSize:12}}/></td>
+                    <td><input type="number" value={r.perDay} onChange={e=>updateRow(i,"perDay",e.target.value)}
+                      style={{width:80,padding:"4px 6px",fontSize:12}}/></td>
+                    <td><input type="number" value={r.totalDays} onChange={e=>updateRow(i,"totalDays",e.target.value)}
+                      style={{width:70,padding:"4px 6px",fontSize:12}}/></td>
+                    <td style={{fontWeight:700,color:"var(--white)"}}>₹{r.fees}</td>
                   </tr>
                 ))}
                 <tr style={{ background:"var(--bg3)" }}>
-                  <td colSpan={7} style={{ fontWeight:700, color:"var(--white)", fontSize:13 }}>Grand Total</td>
+                  <td colSpan={4} style={{ fontWeight:700, color:"var(--white)", fontSize:13 }}>TOTAL</td>
                   <td style={{ fontWeight:800, fontSize:14, color:"var(--white)" }}>₹{grandTotal}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Notes (optional)</label>
-            <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Add any notes..." />
+          {/* Account Details — editable, pre-filled from source employee */}
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".5rem" }}>
+            Account Details
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Account Holder Name</label>
+              <input value={account.account_name} onChange={e=>setAcc("account_name",e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Account Number</label>
+              <input value={account.account_number} onChange={e=>setAcc("account_number",e.target.value)} />
+            </div>
+          </div>
+          <div className="form-row" style={{ marginBottom:"1rem" }}>
+            <div className="form-group">
+              <label className="form-label">IFSC Code</label>
+              <input value={account.ifsc} onChange={e=>setAcc("ifsc",e.target.value.toUpperCase())} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">PAN Number</label>
+              <input value={account.pan} onChange={e=>setAcc("pan",e.target.value.toUpperCase())} />
+            </div>
           </div>
 
-          <button className="btn btn-primary full-width" style={{ marginTop:".5rem" }} onClick={handlePrint}>
-            ↓ Download as PDF
-          </button>
+          {/* Signature preview */}
+          <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:"var(--r)", padding:"12px 16px", marginBottom:"1rem", textAlign:"center" }}>
+            <div style={{ fontSize:10, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:8 }}>Signature preview</div>
+            <div style={{
+              fontFamily: sigStyle ? sigStyle.font.replace(/'/g,"") : "cursive",
+              fontSize: sigStyle ? sigStyle.size : 28,
+              fontStyle: sigStyle ? sigStyle.slant : "italic",
+              color:"var(--white)", lineHeight:1.2, marginBottom:4
+            }}>
+              {invoiceData.source || "—"}
+            </div>
+            <div style={{ fontSize:10, color:"var(--text3)", borderTop:"1px solid var(--border2)", paddingTop:4 }}>SIGNATURE</div>
+          </div>
+
+          <button className="btn btn-primary full-width" onClick={handlePrint}>↓ Download as PDF</button>
         </div>
 
         {/* Hidden print template */}
         <div style={{ display:"none" }}>
           <div ref={printRef}>
-            <h1>◈ AttendTrack</h1>
-            <div className="sub">Attendance & Payroll Invoice</div>
-            <div className="meta">
+            <div class="inv-header">
               <div>
-                <span><b>Invoice No:</b> {invoiceNo}</span>
-                <span><b>Date:</b> {invoiceDate}</span>
-                <span><b>Source (Referred by):</b> {invoiceData.source}</span>
+                <div class="inv-name">{invoiceData.source}</div>
               </div>
-              <div style={{ textAlign:"right" }}>
-                <span><b>Location:</b> Hyderabad Office</span>
-                <span><b>Employees:</b> {rows.length}</span>
+              <div class="inv-meta">
+                <b>INVOICE NO: {invoiceNo}</b><br/>
+                Invoice Date: {invoiceDate}<br/>
+                Address: Hyderabad
               </div>
+            </div>
+            <div class="bill-to">
+              <div class="bill-to-label">Bill To</div>
+              {BILL_TO}
             </div>
             <table>
               <thead>
-                <tr>
-                  <th>Name</th><th>Dept</th><th>Days</th>
-                  <th>OT Hrs</th><th>Day Pay</th>
-                  <th>OT Pay</th><th>Food Allow.</th><th>Total</th>
-                </tr>
+                <tr><th>Description</th><th>OT</th><th>Per Day</th><th>Total Days</th><th>Fees</th></tr>
               </thead>
               <tbody>
                 {rows.map((r,i)=>(
                   <tr key={i}>
-                    <td>{r.name}</td><td>{r.dept}</td><td>{r.days}</td>
-                    <td>{r.otHrs}h</td><td>₹{r.dayPay}</td>
-                    <td>₹{r.otPay}</td><td>₹{r.food}</td>
-                    <td><b>₹{r.total}</b></td>
+                    <td>{r.description}</td><td>{r.ot}</td>
+                    <td>₹{r.perDay}</td><td>{r.totalDays}</td><td>₹{r.fees}</td>
                   </tr>
                 ))}
-                <tr className="grand">
-                  <td colSpan={7}>Grand Total</td>
-                  <td>₹{grandTotal}</td>
+                <tr class="total-row">
+                  <td colSpan={4}>TOTAL</td><td>₹{grandTotal}</td>
                 </tr>
               </tbody>
             </table>
-            {notes && <div className="notes"><b>Notes:</b> {notes}</div>}
+            <div class="bottom">
+              <div class="acc-details">
+                <b>Account Details</b><br/>
+                Payee Name: {account.account_name}<br/>
+                Account Number: {account.account_number}<br/>
+                IFSC: {account.ifsc}<br/>
+                PAN: {account.pan}
+              </div>
+              <div class="sig-area">
+                <div class="sig-text">{invoiceData.source}</div>
+                <div class="sig-label">SIGNATURE</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -197,6 +283,7 @@ export default function Reports() {
   const [alert,         setAlert]         = useState(null);
   const [savingSettings,setSaving]        = useState(false);
   const [invoiceData,   setInvoiceData]   = useState(null);
+  const [viewPhoto,     setViewPhoto]     = useState(null); // { src, name }
   const [activeTab,     setActiveTab]     = useState("employees"); // "employees" | "payroll"
 
   useEffect(() => {
@@ -299,8 +386,24 @@ export default function Reports() {
         <InvoiceModal
           invoiceData={invoiceData}
           settings={settings}
+          allEmployees={employees}
           onClose={()=>setInvoiceData(null)}
         />
+      )}
+
+      {/* Photo lightbox */}
+      {viewPhoto && (
+        <div
+          onClick={()=>setViewPhoto(null)}
+          style={{
+            position:"fixed", inset:0, background:"rgba(0,0,0,.9)",
+            zIndex:300, display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center", gap:"1rem", cursor:"pointer"
+          }}>
+          <img src={viewPhoto.src} alt={viewPhoto.name}
+            style={{ maxWidth:"90vw", maxHeight:"80vh", borderRadius:"var(--r-lg)", objectFit:"contain" }} />
+          <div style={{ color:"#ccc", fontSize:13 }}>{viewPhoto.name} — click anywhere to close</div>
+        </div>
       )}
 
       {/* ── Tab switcher ── */}
@@ -341,12 +444,53 @@ export default function Reports() {
             : (
               <div className="emp-cards-grid">
                 {locationEmployees.map(e => (
-                  <div key={e.id} className="emp-reg-card">
-                    <div className="emp-reg-photo">
+                  <div key={e.id} className="emp-reg-card" style={{ position:"relative" }}>
+                    <button
+                      title="Remove employee"
+                      onClick={async ()=>{
+                        if(!window.confirm(`Remove ${e.full_name}? This cannot be undone.`)) return;
+                        try {
+                          await api.deleteEmployee(e.id);
+                          setEmployees(prev => prev.filter(emp => emp.id !== e.id));
+                        } catch(err) { alert("Failed to remove: " + err.message); }
+                      }}
+                      style={{
+                        position:"absolute", top:10, right:10,
+                        background:"rgba(255,255,255,.06)", border:"1px solid var(--border2)",
+                        borderRadius:6, color:"var(--text3)", fontSize:13,
+                        cursor:"pointer", padding:"3px 7px", lineHeight:1,
+                      }}
+                    >✕</button>
+                    <div
+                      className="emp-reg-photo"
+                      onClick={()=>{ if(e.face_image){ const src=e.face_image.startsWith("data:")?e.face_image:`data:image/jpeg;base64,${e.face_image}`; setViewPhoto({src, name:e.full_name}); }}}
+                      style={{ cursor: e.face_image ? "pointer" : "default", position:"relative" }}
+                      title={e.face_image ? "Click to view full photo" : ""}
+                    >
                       {e.face_image
-                        ? <img src={e.face_image} alt={e.full_name} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }}/>
-                        : <span>{e.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span>
+                        ? <img
+                            src={e.face_image.startsWith("data:") ? e.face_image : `data:image/jpeg;base64,${e.face_image}`}
+                            alt={e.full_name}
+                            style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }}
+                            onError={ev=>{ ev.target.style.display="none"; ev.target.nextSibling.style.display="flex"; }}
+                          />
+                        : null
                       }
+                      {!e.face_image && (
+                        <span>{e.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span>
+                      )}
+                      {e.face_image && (
+                        <span style={{display:"none"}}>{e.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span>
+                      )}
+                      {e.face_image && (
+                        <div style={{
+                          position:"absolute", bottom:0, right:0,
+                          width:20, height:20, borderRadius:"50%",
+                          background:"var(--surface)", border:"1px solid var(--border2)",
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          fontSize:10, color:"var(--text3)"
+                        }}>⤢</div>
+                      )}
                     </div>
                     <div className="emp-reg-name">{e.full_name}</div>
                     <div className="emp-reg-dept">{e.department}</div>
@@ -358,15 +502,31 @@ export default function Reports() {
                       <div className="emp-reg-row"><span>Source</span><span>{e.source||"—"}</span></div>
                       <div className="emp-reg-row"><span>Location</span><span>{e.location||"—"}</span></div>
                     </div>
-                    {e.aadhaar_pdf && (
-                      <button className="btn" style={{ marginTop:".75rem", width:"100%", fontSize:11, padding:"6px 10px" }}
-                        onClick={()=>{
-                          const link=document.createElement("a");
-                          link.href="data:application/pdf;base64,"+e.aadhaar_pdf;
-                          link.download=`${e.full_name}-aadhaar.pdf`; link.click();
-                        }}>
-                        📄 Download Aadhaar PDF
-                      </button>
+                    {e.aadhaar_pdf ? (
+                      <div style={{ display:"flex", gap:".4rem", marginTop:".75rem", width:"100%" }}>
+                        <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
+                          onClick={()=>{
+                            const pdfData = e.aadhaar_pdf.startsWith("data:") ? e.aadhaar_pdf : `data:application/pdf;base64,${e.aadhaar_pdf}`;
+                            const win = window.open("","_blank");
+                            win.document.write(`<html><body style="margin:0"><embed src="${pdfData}" type="application/pdf" width="100%" height="100%"/></body></html>`);
+                            win.document.close();
+                          }}>
+                          👁 View
+                        </button>
+                        <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
+                          onClick={()=>{
+                            const link = document.createElement("a");
+                            link.href = e.aadhaar_pdf.startsWith("data:") ? e.aadhaar_pdf : `data:application/pdf;base64,${e.aadhaar_pdf}`;
+                            link.download = `${e.full_name}-aadhaar.pdf`;
+                            link.click();
+                          }}>
+                          ↓ Download
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ marginTop:".75rem", fontSize:11, color:"var(--text3)", textAlign:"center" }}>
+                        No Aadhaar PDF uploaded
+                      </div>
                     )}
                   </div>
                 ))}

@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import { useFaceApi } from "../api/faceApi";
-import FaceCamera from "./FaceCamera";
+import RegisterCamera from "./RegisterCamera";
 
 const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
   aadhaar_no:"", department:"Engineering",
-  source:"", location: LOCATION, shift_hrs: 8
+  source:"", location: LOCATION, shift_hrs: 8,
+  account_name:"", account_number:"", ifsc:"", pan:""
 };
 
 export default function Register() {
@@ -51,15 +52,17 @@ export default function Register() {
   const handleFaceCapture = async (descriptor, imageDataUrl) => {
     setFaceAlert(null);
     setCapturedImg(imageDataUrl);
+    const empId = newEmpId; // capture current value to avoid stale closure
+    if (!empId) { setFaceAlert({ type:"error", msg:"Employee ID missing. Please go back and try again." }); return; }
     try {
-      await api.updateFace(newEmpId, descriptor);
+      await api.updateFace(empId, descriptor);
       if (imageDataUrl) {
-        await api.updateFaceImage(newEmpId, imageDataUrl).catch(()=>{});
+        await api.updateFaceImage(empId, imageDataUrl).catch(()=>{});
       }
       setFaceAlert({ type:"success", msg:"Face registered! Now upload Aadhaar PDF." });
       setStep(3);
     } catch(e) {
-      await api.deleteEmployee(newEmpId).catch(()=>{});
+      await api.deleteEmployee(empId).catch(()=>{});
       setNewEmpId(null);
       setFaceAlert({ type:"error", msg:"Failed to save face. Employee removed. Try again: " + e.message });
       setTimeout(() => { setStep(1); setFaceAlert(null); }, 3000);
@@ -170,6 +173,34 @@ export default function Register() {
               <label className="form-label">Location</label>
               <input value={LOCATION} disabled style={{ opacity:.6, cursor:"not-allowed" }} />
             </div>
+            <div style={{ borderTop:"1px solid var(--border)", paddingTop:"1rem", marginTop:".25rem" }}>
+              <div style={{ fontSize:11, fontWeight:700, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".75rem" }}>
+                Account Details (for invoice)
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Account Holder Name</label>
+                  <input placeholder="As per bank" value={form.account_name} onChange={e=>set("account_name",e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Account Number</label>
+                  <input placeholder="e.g. 8948131015" value={form.account_number}
+                    onChange={e=>set("account_number",e.target.value.replace(/\D/g,""))} />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">IFSC Code</label>
+                  <input placeholder="e.g. KKBK0005206" value={form.ifsc}
+                    onChange={e=>set("ifsc",e.target.value.toUpperCase())} maxLength={11} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">PAN Number</label>
+                  <input placeholder="e.g. ABCDE1234F" value={form.pan}
+                    onChange={e=>set("pan",e.target.value.toUpperCase())} maxLength={10} />
+                </div>
+              </div>
+            </div>
             {alert && <div className={`alert alert-${alert.type}`}>{alert.msg}</div>}
             <button className="btn btn-primary full-width" onClick={handleSaveDetails}>
               Next → Face Registration
@@ -181,23 +212,9 @@ export default function Register() {
         {step === 2 && (
           <>
             <div className="card-title">Step 2: Face Registration</div>
-            {!faceReady && !faceError && (
-              <div className="face-loading">
-                <div className="face-spinner"/>
-                <span>Loading face recognition models...</span>
-              </div>
-            )}
-            {faceError && <div className="alert alert-error">{faceError}</div>}
-            {faceReady && (
-              <>
-                <div className="alert alert-info" style={{ marginBottom:"0.75rem" }}>
-                  Look directly at the camera — face will be captured automatically.
-                </div>
-                <FaceCamera onCapture={handleFaceCapture} showRetake={true} autoCapture={true} captureImage={true} />
-              </>
-            )}
-            {faceAlert && <div className={`alert alert-${faceAlert.type}`}>{faceAlert.msg}</div>}
-            <button className="btn full-width" style={{ marginTop:"0.5rem", color:"#991b1b" }} onClick={handleCancelFace}>
+            <RegisterCamera onCapture={handleFaceCapture} />
+            {faceAlert && <div className={`alert alert-${faceAlert.type}`} style={{ marginTop:".5rem" }}>{faceAlert.msg}</div>}
+            <button className="btn full-width" style={{ marginTop:"0.5rem", color:"var(--text3)" }} onClick={handleCancelFace}>
               ← Cancel & go back
             </button>
           </>

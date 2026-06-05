@@ -1,0 +1,194 @@
+import { useEffect, useRef, useState, useCallback } from "react";
+
+/**
+ * RegisterCamera — rectangle box, full picture, manual capture button.
+ * Props:
+ *   onCapture(descriptor, imageDataUrl) — called when user clicks Capture
+ */
+export default function RegisterCamera({ onCapture }) {
+  const videoRef    = useRef(null);
+  const canvasRef   = useRef(null);
+  const streamRef   = useRef(null);
+
+  const [state,    setState]    = useState("loading");
+  const [message,  setMessage]  = useState("Starting camera...");
+  const [preview,  setPreview]  = useState(null); // captured image data url
+  const [scanning, setScanning] = useState(false);
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const startCamera = useCallback(async () => {
+    setState("loading");
+    setMessage("Starting camera...");
+    setPreview(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setState("streaming");
+      setMessage("Click Capture when ready");
+    } catch {
+      setState("error");
+      setMessage("Camera access denied. Please allow camera permission and retry.");
+    }
+  }, []);
+
+  useEffect(() => {
+    startCamera();
+    return () => stopCamera();
+  }, []);
+
+  const handleCapture = async () => {
+    if (!videoRef.current || scanning) return;
+    const faceapi = window.faceapi;
+    if (!faceapi) { setMessage("Face models not loaded yet, please wait..."); return; }
+
+    setScanning(true);
+    setMessage("Detecting face...");
+
+    try {
+      // Grab snapshot from video
+      const canvas = canvasRef.current;
+      canvas.width  = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
+      const imageDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+      // Detect face
+      const detection = await faceapi
+        .detectSingleFace(videoRef.current, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!detection) {
+        setMessage("No face detected. Please look at the camera and try again.");
+        setScanning(false);
+        return;
+      }
+
+      const descriptor = Array.from(detection.descriptor);
+      setPreview(imageDataUrl);
+      setState("done");
+      setMessage("Face captured!");
+      stopCamera();
+      onCapture(descriptor, imageDataUrl);
+    } catch (e) {
+      setMessage("Error during capture: " + e.message);
+      setScanning(false);
+    }
+  };
+
+  const handleRetake = () => {
+    setScanning(false);
+    startCamera();
+  };
+
+  return (
+    <div style={{ width:"100%" }}>
+      {/* Rectangle camera box */}
+      <div style={{
+        width:"100%", aspectRatio:"4/3", maxHeight:280,
+        background:"#000", borderRadius:"var(--r-lg)",
+        border:"1px solid var(--border2)",
+        overflow:"hidden", position:"relative",
+        display:"flex", alignItems:"center", justifyContent:"center"
+      }}>
+        {/* Live video — full rectangle, no oval */}
+        <video
+          ref={videoRef}
+          autoPlay muted playsInline
+          style={{
+            width:"100%", height:"100%", objectFit:"cover",
+            display: state === "streaming" ? "block" : "none"
+          }}
+        />
+
+        {/* Preview image after capture */}
+        {state === "done" && preview && (
+          <img src={preview} alt="Captured" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+        )}
+
+        {/* Loading */}
+        {state === "loading" && (
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
+            <div className="face-spinner large"/>
+            <span style={{ fontSize:12, color:"#888" }}>{message}</span>
+          </div>
+        )}
+
+        {/* Error */}
+        {state === "error" && (
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, padding:"1rem" }}>
+            <span style={{ fontSize:28 }}>⚠</span>
+            <span style={{ fontSize:12, color:"#888", textAlign:"center" }}>{message}</span>
+          </div>
+        )}
+
+        {/* Done tick */}
+        {state === "done" && (
+          <div style={{
+            position:"absolute", inset:0,
+            background:"rgba(0,0,0,.35)",
+            display:"flex", flexDirection:"column",
+            alignItems:"center", justifyContent:"center", gap:6
+          }}>
+            <div style={{ fontSize:52, color:"#fff", lineHeight:1 }}>✓</div>
+            <div style={{ fontSize:13, color:"#fff", fontWeight:700 }}>Photo captured</div>
+          </div>
+        )}
+
+        {/* Corner guides while streaming */}
+        {state === "streaming" && (
+          <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none" }}
+            viewBox="0 0 400 300" preserveAspectRatio="none">
+            {/* Corner brackets */}
+            <g stroke="rgba(255,255,255,0.7)" strokeWidth="3" fill="none">
+              <path d="M20,50 L20,20 L50,20"/>
+              <path d="M350,20 L380,20 L380,50"/>
+              <path d="M20,250 L20,280 L50,280"/>
+              <path d="M350,280 L380,280 L380,250"/>
+            </g>
+          </svg>
+        )}
+      </div>
+
+      {/* Hidden canvas for snapshot */}
+      <canvas ref={canvasRef} style={{ display:"none" }} />
+
+      {/* Status */}
+      <div style={{ display:"flex", alignItems:"center", gap:6, margin:".5rem 0 .75rem", fontSize:12, color:"var(--text3)" }}>
+        <div style={{
+          width:7, height:7, borderRadius:"50%", flexShrink:0,
+          background: state === "streaming" ? "var(--white)" : state === "done" ? "var(--white)" : "#555",
+          opacity: state === "streaming" ? 1 : 0.5
+        }}/>
+        {message}
+      </div>
+
+      {/* Buttons */}
+      <div style={{ display:"flex", gap:".5rem" }}>
+        {state === "streaming" && (
+          <button className="btn btn-primary full-width" onClick={handleCapture} disabled={scanning}>
+            {scanning ? "Detecting..." : "📷 Capture Photo"}
+          </button>
+        )}
+        {state === "error" && (
+          <button className="btn btn-primary full-width" onClick={startCamera}>Retry Camera</button>
+        )}
+        {state === "done" && (
+          <button className="btn full-width" onClick={handleRetake}>↺ Retake Photo</button>
+        )}
+      </div>
+    </div>
+  );
+}

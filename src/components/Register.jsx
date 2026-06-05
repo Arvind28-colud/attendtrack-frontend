@@ -3,7 +3,7 @@ import { api } from "../api/client";
 import { useFaceApi } from "../api/faceApi";
 import RegisterCamera from "./RegisterCamera";
 
-const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
+const DEPTS = ["Tech Support"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",

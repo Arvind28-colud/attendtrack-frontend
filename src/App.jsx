@@ -6,8 +6,7 @@ import Employees    from "./components/Employees";
 import Register     from "./components/Register";
 import Attendance   from "./components/Attendance";
 import Reports      from "./components/Reports";
-
-import UserClockPage from "./components/Userclockpage";
+import UserClockPage from "./components/UserClockPage";
 import "./App.css";
 
 const TABS = [

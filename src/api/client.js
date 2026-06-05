@@ -30,6 +30,7 @@ export const api = {
   getDashboard:       ()        => req("/dashboard"),
   getSettings:        ()        => req("/settings"),
   updateSettings:     (data)    => req("/settings", { method:"PUT", body:JSON.stringify(data) }),
+  manualClockOut:     (emp_id, date, time) => req(`/attendance/${emp_id}/manual-clockout?date=${date}`, { method:"PUT", body:JSON.stringify({ clock_out_time: time }) }),
   getReportCSVUrl:    (params={}) => {
     const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([,v])=>v))).toString();
     return `${BASE}/reports/csv${qs?"?"+qs:""}`;

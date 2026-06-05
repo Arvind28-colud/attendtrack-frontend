@@ -6,11 +6,8 @@ import Employees    from "./components/Employees";
 import Register     from "./components/Register";
 import Attendance   from "./components/Attendance";
 import Reports      from "./components/Reports";
-<<<<<<< HEAD
-import UserClockPage from "./components/src/components/Userclockpage ";
-=======
+
 import UserClockPage from "./components/UserClockPage";
->>>>>>> f61acdd6ea8d1087dcb7c0129cb881d40c5ba8c0
 import "./App.css";
 
 const TABS = [
@@ -74,8 +71,4 @@ export default function App() {
       </Routes>
     </BrowserRouter>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> f61acdd6ea8d1087dcb7c0129cb881d40c5ba8c0

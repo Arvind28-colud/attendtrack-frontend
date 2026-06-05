@@ -1,38 +1,31 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { api } from "../api/client";
 import { useFaceApi } from "../api/faceApi";
 import RegisterCamera from "./RegisterCamera";
 
-const DEPTS    = ["Engineering","HR","Finance","Operations","Sales","Admin"];
+const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
   aadhaar_no:"", department:"Engineering",
-  source:"", location: LOCATION, shift_hrs: 8
+  source:"", location: LOCATION, shift_hrs: 8,
+  account_name:"", account_number:"", ifsc:"", pan:""
 };
 
 export default function Register() {
   const { ready: faceReady, error: faceError } = useFaceApi();
-  const [step,         setStep]         = useState(1);
-  const [form,         setForm]         = useState(empty);
-  const [capturedImg,  setCapturedImg]  = useState(null);
-  const [alert,        setAlert]        = useState(null);
-  const [faceAlert,    setFaceAlert]    = useState(null);
-  const [aadhaarFile,  setAadhaarFile]  = useState(null);
+  const [step,       setStep]       = useState(1);
+  const [form,       setForm]       = useState(empty);
+  const [newEmpId,   setNewEmpId]   = useState(null);
+  const [capturedImg, setCapturedImg] = useState(null);
+  const [alert,      setAlert]      = useState(null);
+  const [faceAlert,  setFaceAlert]  = useState(null);
+  const [aadhaarFile, setAadhaarFile] = useState(null);
   const [aadhaarAlert, setAadhaarAlert] = useState(null);
-  const [uploading,    setUploading]    = useState(false);
-  const [done,         setDone]         = useState(false);
-
-  // ✅ Use ref so empId never gets lost between re-renders
-  const empIdRef = useRef(null);
+  const [uploading,  setUploading]  = useState(false);
+  const [done,       setDone]       = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const resetAll = () => {
-    setForm(empty); setStep(1); empIdRef.current = null;
-    setCapturedImg(null); setAadhaarFile(null); setDone(false);
-    setAlert(null); setFaceAlert(null); setAadhaarAlert(null);
-  };
 
   // ── Step 1: Details ──────────────────────────────────────────
   const handleSaveDetails = async () => {
@@ -47,7 +40,8 @@ export default function Register() {
     if (!form.source.trim()) { setAlert({ type:"error", msg:"Source (Referred by) is required." }); return; }
     try {
       const res = await api.createEmployee(form);
-      empIdRef.current = res.id;   // ✅ store in ref, not state
+      setNewEmpId(res.id);
+      setAlert(null);
       setStep(2);
     } catch(e) {
       setAlert({ type:"error", msg: e.message });
@@ -57,64 +51,75 @@ export default function Register() {
   // ── Step 2: Face capture ─────────────────────────────────────
   const handleFaceCapture = async (descriptor, imageDataUrl) => {
     setFaceAlert(null);
-    const id = empIdRef.current;
-    if (!id) { setFaceAlert({ type:"error", msg:"Session lost. Please start again." }); setStep(1); return; }
     setCapturedImg(imageDataUrl);
+    const empId = newEmpId; // capture current value to avoid stale closure
+    if (!empId) { setFaceAlert({ type:"error", msg:"Employee ID missing. Please go back and try again." }); return; }
     try {
-      await api.updateFace(id, descriptor);
-      if (imageDataUrl) await api.updateFaceImage(id, imageDataUrl).catch(()=>{});
+      await api.updateFace(empId, descriptor);
+      if (imageDataUrl) {
+        await api.updateFaceImage(empId, imageDataUrl).catch(()=>{});
+      }
       setFaceAlert({ type:"success", msg:"Face registered! Now upload Aadhaar PDF." });
       setStep(3);
     } catch(e) {
-      await api.deleteEmployee(id).catch(()=>{});
-      empIdRef.current = null;
-      setFaceAlert({ type:"error", msg:"Failed to save face. Try again: " + e.message });
+      await api.deleteEmployee(empId).catch(()=>{});
+      setNewEmpId(null);
+      setFaceAlert({ type:"error", msg:"Failed to save face. Employee removed. Try again: " + e.message });
       setTimeout(() => { setStep(1); setFaceAlert(null); }, 3000);
     }
   };
 
-  // ── Step 3: Aadhaar PDF ──────────────────────────────────────
+  // ── Step 3: Aadhaar PDF upload ───────────────────────────────
   const handleAadhaarUpload = async () => {
     if (!aadhaarFile) { setAadhaarAlert({ type:"error", msg:"Please select a PDF file." }); return; }
     if (aadhaarFile.type !== "application/pdf") { setAadhaarAlert({ type:"error", msg:"Only PDF files are accepted." }); return; }
     if (aadhaarFile.size > 5 * 1024 * 1024) { setAadhaarAlert({ type:"error", msg:"File too large. Max 5MB." }); return; }
-
-    const id = empIdRef.current;
-    if (!id) { setAadhaarAlert({ type:"error", msg:"Session lost. Please start again." }); return; }
-
-    setUploading(true); setAadhaarAlert(null);
+    setUploading(true);
+    setAadhaarAlert(null);
     try {
       const b64 = await fileToBase64(aadhaarFile);
-      await api.updateAadhaarPdf(id, b64);
+      await api.updateAadhaarPdf(newEmpId, b64);
       setAadhaarAlert({ type:"success", msg:"Aadhaar uploaded successfully!" });
-      setTimeout(() => { setDone(true); setTimeout(resetAll, 2000); }, 800);
+      setTimeout(() => {
+        setDone(true);
+        setTimeout(() => {
+          setForm(empty); setStep(1); setNewEmpId(null);
+          setCapturedImg(null); setAadhaarFile(null); setDone(false);
+        }, 2000);
+      }, 800);
     } catch(e) {
       setAadhaarAlert({ type:"error", msg:"Upload failed: " + e.message });
     } finally { setUploading(false); }
   };
 
-  const handleSkipAadhaar = () => { setDone(true); setTimeout(resetAll, 1500); };
-
-  const handleCancelFace = async () => {
-    const id = empIdRef.current;
-    if (id) await api.deleteEmployee(id).catch(()=>{});
-    empIdRef.current = null;
-    setStep(1); setFaceAlert(null); setAlert(null);
+  const handleSkipAadhaar = () => {
+    setDone(true);
+    setTimeout(() => {
+      setForm(empty); setStep(1); setNewEmpId(null);
+      setCapturedImg(null); setAadhaarFile(null); setDone(false);
+    }, 1500);
   };
 
-  if (done) return (
-    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:320, gap:"1rem" }}>
-      <div style={{ fontSize:64, color:"var(--green)" }}>✓</div>
-      <div style={{ fontSize:18, fontWeight:700, color:"var(--white)" }}>Employee Registered!</div>
-      <div style={{ color:"var(--text3)", fontSize:13 }}>Redirecting...</div>
-    </div>
-  );
+  const handleCancelFace = async () => {
+    if (newEmpId) await api.deleteEmployee(newEmpId).catch(()=>{});
+    setNewEmpId(null); setStep(1); setFaceAlert(null); setAlert(null);
+  };
+
+  if (done) {
+    return (
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:320, gap:"1rem" }}>
+        <div style={{ fontSize:64, color:"var(--white)" }}>✓</div>
+        <div style={{ fontSize:18, fontWeight:700, color:"var(--white)" }}>Employee Registered!</div>
+        <div style={{ color:"var(--text3)", fontSize:13 }}>Registration complete. Redirecting...</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth:560, margin:"0 auto" }}>
-      {/* Progress steps */}
+      {/* Progress */}
       <div className="reg-steps">
-        {["Details","Face","Aadhaar PDF"].map((label,i) => (
+        {["Details","Face","Aadhaar PDF"].map((label,i)=>(
           <div key={i} className={`reg-step ${step===i+1?"active":step>i+1?"done":""}`}>
             <div className="reg-step-num">{step > i+1 ? "✓" : i+1}</div>
             <span>{label}</span>
@@ -124,30 +129,32 @@ export default function Register() {
 
       <div className="card">
         {/* ── Step 1 ── */}
-        {step===1&&(
+        {step === 1 && (
           <>
             <div className="card-title">New Employee — Step 1: Details</div>
             <div className="form-group">
-              <label className="form-label">Full Name *</label>
-              <input placeholder="Ravi Kumar" value={form.full_name} onChange={e=>set("full_name",e.target.value)}/>
+              <label className="form-label">Full Name</label>
+              <input placeholder="e.g. Ravi Kumar" value={form.full_name} onChange={e=>set("full_name",e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Father's Name *</label>
-              <input placeholder="Suresh Kumar" value={form.father_name} onChange={e=>set("father_name",e.target.value)}/>
+              <label className="form-label">Father's Name</label>
+              <input placeholder="e.g. Suresh Kumar" value={form.father_name} onChange={e=>set("father_name",e.target.value)} />
             </div>
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Phone Number *</label>
-                <input placeholder="10 digits" maxLength={10} value={form.phone} onChange={e=>set("phone",e.target.value.replace(/\D/g,""))}/>
+                <label className="form-label">Phone Number</label>
+                <input placeholder="10 digits" maxLength={10} value={form.phone}
+                  onChange={e=>set("phone",e.target.value.replace(/\D/g,""))} />
               </div>
               <div className="form-group">
-                <label className="form-label">Email *</label>
-                <input type="email" placeholder="email@example.com" value={form.email} onChange={e=>set("email",e.target.value)}/>
+                <label className="form-label">Email</label>
+                <input type="email" placeholder="email@example.com" value={form.email} onChange={e=>set("email",e.target.value)} />
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Aadhaar Number * (12 digits)</label>
-              <input placeholder="xxxxxxxxxxxx" maxLength={12} value={form.aadhaar_no} onChange={e=>set("aadhaar_no",e.target.value.replace(/\D/g,""))}/>
+              <label className="form-label">Aadhaar Number (12 digits)</label>
+              <input placeholder="xxxxxxxxxxxx" maxLength={12} value={form.aadhaar_no}
+                onChange={e=>set("aadhaar_no",e.target.value.replace(/\D/g,""))} />
             </div>
             <div className="form-row">
               <div className="form-group">
@@ -157,15 +164,44 @@ export default function Register() {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Source (Referred by) *</label>
-                <input placeholder="e.g. Raju, Indeed, Walk-in" value={form.source} onChange={e=>set("source",e.target.value)}/>
+                <label className="form-label">Source (Referred by)</label>
+                <input placeholder="e.g. Raju, Indeed, Walk-in" value={form.source}
+                  onChange={e=>set("source",e.target.value)} />
               </div>
             </div>
             <div className="form-group">
               <label className="form-label">Location</label>
-              <input value={LOCATION} disabled style={{opacity:.6,cursor:"not-allowed"}}/>
+              <input value={LOCATION} disabled style={{ opacity:.6, cursor:"not-allowed" }} />
             </div>
-            {alert&&<div className={`alert alert-${alert.type}`}>{alert.msg}</div>}
+            <div style={{ borderTop:"1px solid var(--border)", paddingTop:"1rem", marginTop:".25rem" }}>
+              <div style={{ fontSize:11, fontWeight:700, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".75rem" }}>
+                Account Details (for invoice)
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Account Holder Name</label>
+                  <input placeholder="As per bank" value={form.account_name} onChange={e=>set("account_name",e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Account Number</label>
+                  <input placeholder="e.g. 8948131015" value={form.account_number}
+                    onChange={e=>set("account_number",e.target.value.replace(/\D/g,""))} />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">IFSC Code</label>
+                  <input placeholder="e.g. KKBK0005206" value={form.ifsc}
+                    onChange={e=>set("ifsc",e.target.value.toUpperCase())} maxLength={11} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">PAN Number</label>
+                  <input placeholder="e.g. ABCDE1234F" value={form.pan}
+                    onChange={e=>set("pan",e.target.value.toUpperCase())} maxLength={10} />
+                </div>
+              </div>
+            </div>
+            {alert && <div className={`alert alert-${alert.type}`}>{alert.msg}</div>}
             <button className="btn btn-primary full-width" onClick={handleSaveDetails}>
               Next → Face Registration
             </button>
@@ -173,27 +209,26 @@ export default function Register() {
         )}
 
         {/* ── Step 2 ── */}
-        {step===2&&(
+        {step === 2 && (
           <>
             <div className="card-title">Step 2: Face Registration</div>
-            {!faceReady&&!faceError&&<div className="face-loading"><div className="face-spinner"/><span>Loading face models...</span></div>}
-            {faceError&&<div className="alert alert-error">{faceError}</div>}
-            {faceReady&&<RegisterCamera onCapture={handleFaceCapture}/>}
-            {faceAlert&&<div className={`alert alert-${faceAlert.type}`} style={{marginTop:".5rem"}}>{faceAlert.msg}</div>}
-            <button className="btn full-width" style={{marginTop:".5rem",color:"var(--text3)"}} onClick={handleCancelFace}>
+            <RegisterCamera onCapture={handleFaceCapture} />
+            {faceAlert && <div className={`alert alert-${faceAlert.type}`} style={{ marginTop:".5rem" }}>{faceAlert.msg}</div>}
+            <button className="btn full-width" style={{ marginTop:"0.5rem", color:"var(--text3)" }} onClick={handleCancelFace}>
               ← Cancel & go back
             </button>
           </>
         )}
 
         {/* ── Step 3 ── */}
-        {step===3&&(
+        {step === 3 && (
           <>
             <div className="card-title">Step 3: Upload Aadhaar PDF</div>
-            {capturedImg&&(
-              <div style={{textAlign:"center",marginBottom:"1rem"}}>
-                <div style={{fontSize:11,color:"var(--text3)",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Registered Face</div>
-                <img src={capturedImg} alt="Face" style={{width:120,height:120,borderRadius:"50%",objectFit:"cover",border:"2px solid var(--white)",display:"inline-block"}}/>
+            {capturedImg && (
+              <div style={{ textAlign:"center", marginBottom:"1rem" }}>
+                <div style={{ fontSize:11, color:"var(--text3)", marginBottom:6, textTransform:"uppercase", letterSpacing:".06em" }}>Registered Face</div>
+                <img src={capturedImg} alt="Registered face"
+                  style={{ width:120, height:120, borderRadius:"50%", objectFit:"cover", border:"2px solid var(--white)", display:"inline-block" }} />
               </div>
             )}
             <div className="form-group">
@@ -204,13 +239,14 @@ export default function Register() {
                   : <><div className="pdf-icon">⬆</div><div style={{fontSize:13,color:"var(--text3)"}}>Click to upload Aadhaar PDF</div><div style={{fontSize:11,color:"var(--text3)",marginTop:3}}>Max 5MB · PDF only</div></>
                 }
               </div>
-              <input id="aadhaar-pdf-input" type="file" accept=".pdf,application/pdf" style={{display:"none"}} onChange={e=>{ if(e.target.files[0]) setAadhaarFile(e.target.files[0]); }}/>
+              <input id="aadhaar-pdf-input" type="file" accept=".pdf,application/pdf"
+                style={{ display:"none" }} onChange={e=>{ if(e.target.files[0]) setAadhaarFile(e.target.files[0]); }} />
             </div>
-            {aadhaarAlert&&<div className={`alert alert-${aadhaarAlert.type}`}>{aadhaarAlert.msg}</div>}
-            <button className="btn btn-primary full-width" onClick={handleAadhaarUpload} disabled={uploading||!aadhaarFile}>
-              {uploading?"Uploading...":"Upload & Complete Registration"}
+            {aadhaarAlert && <div className={`alert alert-${aadhaarAlert.type}`}>{aadhaarAlert.msg}</div>}
+            <button className="btn btn-primary full-width" onClick={handleAadhaarUpload} disabled={uploading || !aadhaarFile}>
+              {uploading ? "Uploading..." : "Upload & Complete Registration"}
             </button>
-            <button className="btn full-width" style={{marginTop:".4rem",color:"var(--text3)"}} onClick={handleSkipAadhaar}>
+            <button className="btn full-width" style={{ marginTop:".4rem", color:"var(--text3)" }} onClick={handleSkipAadhaar}>
               Skip for now
             </button>
           </>
@@ -223,7 +259,7 @@ export default function Register() {
 function fileToBase64(file) {
   return new Promise((res, rej) => {
     const r = new FileReader();
-    r.onload  = () => res(r.result);
+    r.onload  = () => res(r.result.split(",")[1]);
     r.onerror = () => rej(new Error("Read failed"));
     r.readAsDataURL(file);
   });

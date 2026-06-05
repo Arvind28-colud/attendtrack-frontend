@@ -7,7 +7,7 @@ import Register     from "./components/Register";
 import Attendance   from "./components/Attendance";
 import Reports      from "./components/Reports";
 
-import UserClockPage from "./components/UserClockPage";
+import UserClockPage from "./components/Userclockpage";
 import "./App.css";
 
 const TABS = [

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getEmbedding } from "../api/arcface";
+import { uploadImage } from "../api/cloudinary";
 
 /**
  * RegisterCamera — rectangle box, full picture, manual capture button.
@@ -58,10 +59,19 @@ export default function RegisterCamera({ onCapture }) {
       // Get ArcFace embedding
       const embedding = await getEmbedding(imageDataUrl);
 
+      // Upload face image to Cloudinary
+      setMessage("Uploading photo to cloud...");
+      let imageUrl = imageDataUrl; // fallback to base64 if upload fails
+      try {
+        imageUrl = await uploadImage(imageDataUrl, "attendtrack/faces");
+      } catch(uploadErr) {
+        console.warn("Cloudinary upload failed, using base64 fallback:", uploadErr.message);
+      }
+
       setPreview(imageDataUrl);
       setState("done"); setMessage("Face captured successfully!");
       stopCamera();
-      onCapture(embedding, imageDataUrl);
+      onCapture(embedding, imageUrl);
     } catch (e) {
       setMessage("❌ " + e.message + " — Try again.");
       setCapturing(false);

@@ -15,8 +15,17 @@ export default function Dashboard() {
     api.getDashboard().then(setData).catch(e=>setError(e.message));
     api.getTodayAttendance().then(recs => {
       setTodayAtt(recs);
-      // Missed clock-out = on-duty status (clocked in but never clocked out)
-      setMissedOut(recs.filter(r => r.status === "on-duty" && r.clock_in && !r.clock_out));
+      const now = new Date();
+      const missed = recs.filter(r => {
+        if (r.status !== "on-duty" || !r.clock_in || r.clock_out) return false;
+        // Parse clock_in time and check if 8+ hours have passed
+        const [h, m] = r.clock_in.split(":").map(Number);
+        const clockInMs = new Date();
+        clockInMs.setHours(h, m, 0, 0);
+        const hoursWorked = (now - clockInMs) / (1000 * 60 * 60);
+        return hoursWorked >= 8;
+      });
+      setMissedOut(missed);
     }).catch(()=>{});
   };
 

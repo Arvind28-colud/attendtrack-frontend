@@ -96,8 +96,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh}
 }
 .btn-logout:hover{border-color:var(--text2);color:var(--text)}
 
-/* ── Mobile bottom nav ──────────────────────────────────────── */
-.mobile-nav{display:none}
+/* mobile-nav base — see @media block below */
 
 .content{padding:1.5rem;flex:1}
 .content > *{animation:fadeUp .2s ease both}
@@ -333,69 +332,7 @@ tr:hover td{background:var(--bg3)}
 .bio-badge-row{display:flex;align-items:center;gap:10px;padding:.8rem;background:var(--bg3);border-radius:var(--r);margin-bottom:.8rem;border:1px solid var(--border)}
 .emp-full-detail{}
 
-/* ════════════════════════════════════════════════════════════
-   MOBILE  ≤ 768px
-   ════════════════════════════════════════════════════════════ */
-@media(max-width:768px){
-  .nav-tab{display:none}
-  .nav{padding:0 1rem}
-  .nav-logo{border-right:none;margin-right:0;font-size:15px;padding:.75rem 0}
-  .nav-right .nav-user{display:none}
-  .btn-logout{font-size:11px;padding:5px 10px}
-
-  .mobile-nav{
-    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;
-    background:var(--black);border-top:1px solid var(--border);
-    padding:6px 0 max(6px,env(safe-area-inset-bottom));
-  }
-  .mobile-nav-item{
-    flex:1;display:flex;flex-direction:column;align-items:center;
-    gap:3px;padding:6px 4px;cursor:pointer;border:none;background:transparent;
-    font-family:inherit;transition:all .15s;
-  }
-  .mobile-nav-item i{font-size:20px;color:var(--text3);transition:color .15s}
-  .mobile-nav-item span{font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap}
-  .mobile-nav-item.active i{color:var(--white)}
-  .mobile-nav-item.active span{color:var(--white)}
-
-  .content{padding:1rem 1rem 90px}
-
-  /* Stacked layouts */
-  .grid2{grid-template-columns:1fr}
-  .metrics-grid{grid-template-columns:1fr 1fr}
-  .station-outer{grid-template-columns:1fr}
-  .form-row{grid-template-columns:1fr 1fr}
-  .detail-grid{grid-template-columns:auto 1fr}
-  .detail-summary{display:none}
-
-  /* Clock hero on mobile */
-  .clock-display{font-size:40px}
-  .clock-hero-mobile{padding:1rem}
-
-  /* Cards */
-  .card{border-radius:var(--r);padding:1rem}
-
-  /* Table */
-  .table-wrap{border-radius:var(--r);-webkit-overflow-scrolling:touch}
-  table{min-width:460px}
-
-  /* Camera */
-  .fc-stage{aspect-ratio:3/4}
-  .station-card{border:none;box-shadow:none;padding:0;background:transparent}
-
-  /* Toggle full width */
-  .toggle-group{width:100%}
-  .toggle-btn{flex:1;text-align:center}
-
-  /* Payslip */
-  .payslip-row{font-size:12px}
-}
-
-@media(max-width:400px){
-  .metrics-grid{grid-template-columns:1fr 1fr}
-  .metric-value{font-size:24px}
-  .clock-display{font-size:34px}
-}
+/* old mobile styles removed — see new @media blocks at bottom */
 /* ── Register Steps ─────────────────────────────────────────── */
 .reg-steps{
   display:flex;align-items:center;gap:0;margin-bottom:1.25rem;
@@ -487,4 +424,152 @@ tr:hover td{background:var(--bg3)}
 @media(max-width:480px){
   .emp-cards-grid{grid-template-columns:1fr}
   .reg-steps{padding:.5rem .75rem}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE NAV OVERHAUL
+   ══════════════════════════════════════════════════════════════ */
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* ── Shell ── */
+  .app { padding-bottom: 0; }
+  .content { padding: 1rem 1rem 100px; }
+
+  /* ── Top nav strip ── */
+  .nav {
+    padding: 0 .875rem;
+    min-height: 52px;
+  }
+  .nav-logo {
+    font-size: 15px;
+    padding: .75rem 0;
+    border-right: none;
+    margin-right: 0;
+  }
+  .nav-tab { display: none; }
+  .nav-right { gap: .5rem; }
+  .nav-user { display: none; }
+  .btn-logout {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+  }
+
+  /* ── Bottom nav ── */
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding: 8px 0 max(10px, env(safe-area-inset-bottom));
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 2px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    position: relative;
+    transition: transform .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-nav-item:active { transform: scale(.92); }
+
+  .mobile-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 28px;
+    border-radius: 10px;
+    transition: background .15s, color .15s;
+    color: #555;
+  }
+  .mobile-nav-item.active .mobile-nav-icon {
+    background: rgba(255,255,255,.12);
+    color: #fff;
+  }
+
+  .mobile-nav-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #555;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    transition: color .15s;
+  }
+  .mobile-nav-item.active .mobile-nav-label { color: #fff; }
+
+  /* ── Active pill indicator ── */
+  .mobile-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: #fff;
+    border-radius: 0 0 2px 2px;
+  }
+
+  /* ── Layout fixes ── */
+  .grid2 { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .form-row { grid-template-columns: 1fr 1fr; }
+  .station-outer { grid-template-columns: 1fr; }
+
+  /* ── Cards ── */
+  .card { border-radius: 12px; padding: 1rem; }
+  .card-title { font-size: 10px; }
+
+  /* ── Metric cards ── */
+  .metric { padding: .75rem .875rem; }
+  .metric-value { font-size: 26px; }
+  .metric-label { font-size: 10px; }
+
+  /* ── Tables ── */
+  .table-wrap { border-radius: 8px; -webkit-overflow-scrolling: touch; }
+  table { min-width: 480px; }
+  th, td { padding: 8px 10px; font-size: 12px; }
+
+  /* ── Emp cards grid ── */
+  .emp-cards-grid { grid-template-columns: 1fr 1fr; gap: .75rem; }
+
+  /* ── Reg steps ── */
+  .reg-steps { padding: .5rem .75rem; font-size: 11px; }
+  .reg-step-num { width: 20px; height: 20px; font-size: 10px; }
+
+  /* ── Modal ── */
+  .modal-overlay { padding: .5rem; align-items: flex-end; }
+  .modal-box {
+    max-height: 92vh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+  }
+
+  /* ── Buttons ── */
+  .btn { padding: 8px 14px; font-size: 12px; }
+  .btn-primary { padding: 10px 16px; }
+  .full-width { margin-top: .4rem; }
+}
+
+@media (max-width: 400px) {
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .metric-value { font-size: 22px; }
+  .emp-cards-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../api/client";
 import RegisterCamera from "./RegisterCamera";
 import SourceManager from "./SourceManager";
-import { uploadPdf } from "../api/Cloudinary";
+import { uploadPdf } from "../api/cloudinary";
 
 const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
 const LOCATION = "Hyderabad Office";
@@ -25,11 +25,6 @@ export default function Register() {
   const [aadhaarAlert, setAadhaarAlert] = useState(null);
   const [uploading,  setUploading]  = useState(false);
   const [done,       setDone]       = useState(false);
-  const [sources,    setSources]    = useState([]);
-
-  useEffect(() => {
-    api.getSourcePersons().then(setSources).catch(()=>{});
-  }, []);
   const [sources,    setSources]    = useState([]);
 
   useEffect(() => {

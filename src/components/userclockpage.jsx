@@ -94,12 +94,12 @@ export default function UserClockPage() {
   const emp = employees.find(e => e.id === parseInt(selectedId));
 
   return (
-    <div style={{ minHeight:"100vh", background:"var(--bg)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"1.5rem" }}>
+    <div style={{ minHeight:"100vh", background:"#f5f5f5", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"1.5rem" }}>
 
       {/* Clock */}
       <div style={{ textAlign:"center", marginBottom:"2rem" }}>
-        <div style={{ fontSize:48, fontWeight:800, color:"var(--text)", fontVariantNumeric:"tabular-nums", letterSpacing:"-2px" }}>{time}</div>
-        <div style={{ fontSize:13, color:"var(--text3)", marginTop:4 }}>{dateStr}</div>
+        <div style={{ fontSize:48, fontWeight:500, color:"#111111", fontVariantNumeric:"tabular-nums", letterSpacing:"-2px" }}>{time}</div>
+        <div style={{ fontSize:13, color:"#aaaaaa", marginTop:4 }}>{dateStr}</div>
       </div>
 
       <div style={{ width:"100%", maxWidth:420 }}>

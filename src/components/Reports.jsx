@@ -125,10 +125,10 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
       <div className="modal-box">
         <div className="modal-header">
           <div>
-            <div style={{ fontWeight:700, fontSize:15, color:"var(--text)" }}>
+            <div style={{ fontWeight:700, fontSize:15, color:"#111111" }}>
               Invoice — {invoiceData.source || "Unknown Source"}
             </div>
-            <div style={{ fontSize:12, color:"var(--text3)", marginTop:2 }}>
+            <div style={{ fontSize:12, color:"#aaaaaa", marginTop:2 }}>
               Edit then download as PDF
             </div>
           </div>
@@ -149,13 +149,13 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
           </div>
 
           {/* Bill To — fixed */}
-          <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:"var(--r)", padding:"10px 12px", marginBottom:"1rem", fontSize:12, color:"var(--text2)" }}>
-            <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:".07em", color:"var(--text3)", marginBottom:4 }}>Bill To (fixed)</div>
+          <div style={{ background:"#f5f5f5", border:"0.5px solid #e5e5e5", borderRadius:"var(--r)", padding:"10px 12px", marginBottom:"1rem", fontSize:12, color:"#555555" }}>
+            <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:".07em", color:"#aaaaaa", marginBottom:4 }}>Bill To (fixed)</div>
             {BILL_TO}
           </div>
 
           {/* Description rows */}
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".5rem" }}>
+          <div style={{ fontSize:11, fontWeight:700, color:"#aaaaaa", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".5rem" }}>
             Description
           </div>
           <div className="table-wrap" style={{ marginBottom:"1rem" }}>
@@ -180,19 +180,19 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
                       style={{width:80,padding:"4px 6px",fontSize:12}}/></td>
                     <td><input type="number" value={r.totalDays} onChange={e=>updateRow(i,"totalDays",e.target.value)}
                       style={{width:70,padding:"4px 6px",fontSize:12}}/></td>
-                    <td style={{fontWeight:700,color:"var(--text)"}}>₹{r.fees}</td>
+                    <td style={{fontWeight:700,color:"#111111"}}>₹{r.fees}</td>
                   </tr>
                 ))}
-                <tr style={{ background:"var(--bg3)" }}>
-                  <td colSpan={4} style={{ fontWeight:700, color:"var(--text)", fontSize:13 }}>TOTAL</td>
-                  <td style={{ fontWeight:800, fontSize:14, color:"var(--text)" }}>₹{grandTotal}</td>
+                <tr style={{ background:"#f5f5f5" }}>
+                  <td colSpan={4} style={{ fontWeight:700, color:"#111111", fontSize:13 }}>TOTAL</td>
+                  <td style={{ fontWeight:800, fontSize:14, color:"#111111" }}>₹{grandTotal}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           {/* Account Details — editable, pre-filled from source employee */}
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".5rem" }}>
+          <div style={{ fontSize:11, fontWeight:700, color:"#aaaaaa", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".5rem" }}>
             Account Details
           </div>
           <div className="form-row">
@@ -217,17 +217,17 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
           </div>
 
           {/* Signature preview */}
-          <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:"var(--r)", padding:"12px 16px", marginBottom:"1rem", textAlign:"center" }}>
-            <div style={{ fontSize:10, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:8 }}>Signature preview</div>
+          <div style={{ background:"#f5f5f5", border:"0.5px solid #e5e5e5", borderRadius:"var(--r)", padding:"12px 16px", marginBottom:"1rem", textAlign:"center" }}>
+            <div style={{ fontSize:10, color:"#aaaaaa", textTransform:"uppercase", letterSpacing:".07em", marginBottom:8 }}>Signature preview</div>
             <div style={{
               fontFamily: sigStyle ? sigStyle.font.replace(/'/g,"") : "cursive",
               fontSize: sigStyle ? sigStyle.size : 28,
               fontStyle: sigStyle ? sigStyle.slant : "italic",
-              color:"var(--text)", lineHeight:1.2, marginBottom:4
+              color:"#111111", lineHeight:1.2, marginBottom:4
             }}>
               {invoiceData.source || "—"}
             </div>
-            <div style={{ fontSize:10, color:"var(--text3)", borderTop:"1px solid var(--border2)", paddingTop:4 }}>SIGNATURE</div>
+            <div style={{ fontSize:10, color:"#aaaaaa", borderTop:"0.5px solid #e5e5e5", paddingTop:4 }}>SIGNATURE</div>
           </div>
 
           <button className="btn btn-primary full-width" onClick={handlePrint}>↓ Download as PDF</button>
@@ -238,12 +238,10 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
           <div ref={printRef}>
             <div class="inv-header">
               <div>
-                <div class="inv-name">{invoiceData.source}</div>
+                <div class="inv-name">INVOICE</div>
               </div>
               <div class="inv-meta">
-                <b>INVOICE NO: {invoiceNo}</b><br/>
-                Invoice Date: {invoiceDate}<br/>
-                Address: Hyderabad
+                <b>NO: {invoiceNo}</b>
               </div>
             </div>
             <div class="bill-to">
@@ -269,13 +267,13 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
             <div class="bottom">
               <div class="acc-details">
                 <b>Account Details</b><br/>
-                Payee Name: {account.account_name}<br/>
+                Payee Name: <span style="white-space:pre-wrap">{account.account_name}</span><br/>
                 Account Number: {account.account_number}<br/>
                 IFSC: {account.ifsc}<br/>
                 PAN: {account.pan}
               </div>
               <div class="sig-area">
-                <div class="sig-text">{invoiceData.source}</div>
+                <div class="sig-text" style="white-space:pre-wrap">{invoiceData.source}</div>
                 <div class="sig-label">SIGNATURE</div>
               </div>
             </div>
@@ -360,7 +358,7 @@ export default function Reports() {
   // CSV download — columns: Name, Dept, Source, Location, Total Days, OT Hrs, Day Pay, OT Pay, Food Allowance
   const handleDownloadCSV = () => {
     if (preview.length === 0) { setAlert({ type:"error", msg:"Run Preview first." }); return; }
-    const headers = ["Employee Name","Department","Source","Location","Total Days","OT Hours","Day Pay (₹)","OT Pay (₹)","Food Allowance (₹)"];
+    const headers = ["Employee Name","Department","Source","Location","Total Days","OT Hours","Day Pay","OT Pay","Food Allowance"];
     const rows = preview.map(p => [
       p.name, p.dept, p.source, p.location,
       p.totalDays, p.otHrs.toFixed(1),
@@ -433,12 +431,12 @@ export default function Reports() {
       {/* ── Tab switcher ── */}
       <div style={{ display:"flex", gap:".5rem", marginBottom:"1rem" }}>
         <button className={`toggle-btn ${activeTab==="employees"?"active":""}`}
-          style={{ border:"1px solid var(--border2)", borderRadius:"var(--r)", padding:"7px 16px" }}
+          style={{ border:"0.5px solid #d8d8d8", borderRadius:"var(--r)", padding:"7px 16px" }}
           onClick={()=>setActiveTab("employees")}>
           👥 Employee Cards
         </button>
         <button className={`toggle-btn ${activeTab==="payroll"?"active":""}`}
-          style={{ border:"1px solid var(--border2)", borderRadius:"var(--r)", padding:"7px 16px" }}
+          style={{ border:"0.5px solid #d8d8d8", borderRadius:"var(--r)", padding:"7px 16px" }}
           onClick={()=>setActiveTab("payroll")}>
           📊 Payroll & Reports
         </button>
@@ -457,7 +455,7 @@ export default function Reports() {
                   {LOCATIONS.map(l => <option key={l}>{l}</option>)}
                 </select>
               </div>
-              <div style={{ alignSelf:"flex-end", color:"var(--text3)", fontSize:13 }}>
+              <div style={{ alignSelf:"flex-end", color:"#aaaaaa", fontSize:13 }}>
                 {locationEmployees.length} employee{locationEmployees.length!==1?"s":""} found
               </div>
             </div>
@@ -480,8 +478,8 @@ export default function Reports() {
                       }}
                       style={{
                         position:"absolute", top:10, right:10,
-                        background:"rgba(255,255,255,.06)", border:"1px solid var(--border2)",
-                        borderRadius:6, color:"var(--text3)", fontSize:13,
+                        background:"rgba(255,255,255,.06)", border:"0.5px solid #d8d8d8",
+                        borderRadius:6, color:"#aaaaaa", fontSize:13,
                         cursor:"pointer", padding:"3px 7px", lineHeight:1,
                       }}
                     >✕</button>
@@ -510,9 +508,9 @@ export default function Reports() {
                         <div style={{
                           position:"absolute", bottom:0, right:0,
                           width:20, height:20, borderRadius:"50%",
-                          background:"var(--surface)", border:"1px solid var(--border2)",
+                          background:"#ffffff", border:"0.5px solid #d8d8d8",
                           display:"flex", alignItems:"center", justifyContent:"center",
-                          fontSize:10, color:"var(--text3)"
+                          fontSize:10, color:"#aaaaaa"
                         }}>⤢</div>
                       )}
                     </div>
@@ -554,7 +552,7 @@ export default function Reports() {
                         </button>
                       </div>
                     ) : (
-                      <div style={{ marginTop:".75rem", fontSize:11, color:"var(--text3)", textAlign:"center" }}>
+                      <div style={{ marginTop:".75rem", fontSize:11, color:"#aaaaaa", textAlign:"center" }}>
                         No Aadhaar PDF uploaded
                       </div>
                     )}

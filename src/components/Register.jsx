@@ -4,11 +4,11 @@ import RegisterCamera from "./RegisterCamera";
 import SourceManager from "./sourcemanager";
 import { uploadPdf } from "../api/Cloudinary";
 
-const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
+const DEPTS = ["Tech Support"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
-  aadhaar_no:"", department:"Engineering",
+  aadhaar_no:"", department:"",
   source:"", location: LOCATION, shift_hrs: 8,
   account_name:"", account_number:"", ifsc:"", pan:""
 };

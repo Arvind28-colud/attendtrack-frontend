@@ -48,10 +48,12 @@ function AdminApp() {
       {/* Desktop top nav */}
       <nav className="nav">
         <div className="nav-logo">◈ AttendTrack</div>
-        {TABS.map(t => (
-          <button key={t.id} className={`nav-tab ${active===t.id?"active":""}`}
-            onClick={() => setActive(t.id)}>{t.label}</button>
-        ))}
+        <div className="nav-tab-group">
+          {TABS.map(t => (
+            <button key={t.id} className={`nav-tab ${active===t.id?"active":""}`}
+              onClick={() => setActive(t.id)}>{t.label}</button>
+          ))}
+        </div>
         <div className="nav-right">
           <span className="nav-user">👤 {admin.username}</span>
           <button className="btn-logout" onClick={() => setAdmin(null)}>Logout</button>

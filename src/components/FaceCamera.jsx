@@ -89,7 +89,7 @@ export default function FaceCamera({ knownFaces = [], onMatch, disabled = false 
     <div style={{ width:"100%" }}>
       <div style={{
         width:"100%", aspectRatio:"4/3", maxHeight:280,
-        background:"#0d1117", borderRadius:"var(--r-lg)",
+        background:"#1a1a1a", borderRadius:"var(--r-lg)",
         border:"1px solid var(--border2)", overflow:"hidden",
         position:"relative", display:"flex", alignItems:"center", justifyContent:"center"
       }}>
@@ -100,13 +100,13 @@ export default function FaceCamera({ knownFaces = [], onMatch, disabled = false 
         {camState === "loading" && (
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
             <div className="face-spinner large"/>
-            <span style={{ fontSize:12, color:"#888" }}>Starting camera...</span>
+            <span style={{ fontSize:12, color:"#aaaaaa" }}>Starting camera...</span>
           </div>
         )}
         {camState === "error" && (
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, padding:"1rem" }}>
             <span style={{ fontSize:28 }}>⚠</span>
-            <span style={{ fontSize:12, color:"#888", textAlign:"center" }}>{message}</span>
+            <span style={{ fontSize:12, color:"#aaaaaa", textAlign:"center" }}>{message}</span>
           </div>
         )}
         {camState === "matched" && (
@@ -137,7 +137,7 @@ export default function FaceCamera({ knownFaces = [], onMatch, disabled = false 
             alignItems:"center", justifyContent:"center", gap:10
           }}>
             <div className="face-spinner large" style={{ borderTopColor:"#fff" }}/>
-            <span style={{ fontSize:12, color:"#ccc" }}>Verifying with ArcFace...</span>
+            <span style={{ fontSize:12, color:"#dddddd" }}>Verifying with ArcFace...</span>
           </div>
         )}
       </div>

@@ -125,6 +125,7 @@ export default function Register() {
   }
 
   return (
+    <>
     <div style={{ maxWidth:560, margin:"0 auto" }}>
       {/* Progress */}
       <div className="reg-steps">
@@ -266,7 +267,7 @@ export default function Register() {
       </div>
     </div>
     <SourceManager />
-  );
+  </>;
 }
 
 function fileToBase64(file) {

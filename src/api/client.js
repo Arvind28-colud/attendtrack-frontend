@@ -21,6 +21,10 @@ export const api = {
   updateAadhaarPdf:   (id, pdf) => req(`/employees/${id}/aadhaar-pdf`, { method:"PUT", body:JSON.stringify({ aadhaar_pdf: pdf }) }),
   deleteEmployee:     (id)      => req(`/employees/${id}`, { method:"DELETE" }),
   getAllFaces:         ()        => req("/employees/faces/all"),
+  getSources:         ()        => req("/sources"),
+  createSource:       (data)    => req("/sources", { method:"POST", body:JSON.stringify(data) }),
+  updateSource:       (id, data)=> req(`/sources/${id}`, { method:"PUT", body:JSON.stringify(data) }),
+  deleteSource:       (id)      => req(`/sources/${id}`, { method:"DELETE" }),
   clock:              (emp_id)  => req("/clock", { method:"POST", body:JSON.stringify({ emp_id }) }),
   getAttendance:      (params={}) => {
     const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([,v])=>v))).toString();

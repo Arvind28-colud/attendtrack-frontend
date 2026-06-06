@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
 import RegisterCamera from "./RegisterCamera";
-import SourceManager from "./SourceManager";
+import SourceManager from "./sourcemanager";
 
 const DEPTS = ["Tech Support"];
 const LOCATION = "Hyderabad Office";

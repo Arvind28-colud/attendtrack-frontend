@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getEmbedding } from "../api/arcface";
-import { uploadImage } from "../api/cloudinary";
+import { uploadImage } from "../api/Cloudinary";
 
 /**
  * RegisterCamera — rectangle box, full picture, manual capture button.

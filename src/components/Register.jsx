@@ -267,7 +267,8 @@ export default function Register() {
       </div>
     </div>
     <SourceManager />
-  </>;
+  </>
+  );
 }
 
 function fileToBase64(file) {

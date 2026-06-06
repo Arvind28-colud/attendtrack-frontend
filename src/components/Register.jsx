@@ -14,7 +14,6 @@ const empty = {
 };
 
 export default function Register() {
-  const { ready: faceReady, error: faceError } = useFaceApi();
   const [step,       setStep]       = useState(1);
   const [form,       setForm]       = useState(empty);
   const [newEmpId,   setNewEmpId]   = useState(null);

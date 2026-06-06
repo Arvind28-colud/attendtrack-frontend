@@ -125,7 +125,7 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
       <div className="modal-box">
         <div className="modal-header">
           <div>
-            <div style={{ fontWeight:700, fontSize:15, color:"var(--white)" }}>
+            <div style={{ fontWeight:700, fontSize:15, color:"var(--text)" }}>
               Invoice — {invoiceData.source || "Unknown Source"}
             </div>
             <div style={{ fontSize:12, color:"var(--text3)", marginTop:2 }}>
@@ -180,12 +180,12 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
                       style={{width:80,padding:"4px 6px",fontSize:12}}/></td>
                     <td><input type="number" value={r.totalDays} onChange={e=>updateRow(i,"totalDays",e.target.value)}
                       style={{width:70,padding:"4px 6px",fontSize:12}}/></td>
-                    <td style={{fontWeight:700,color:"var(--white)"}}>₹{r.fees}</td>
+                    <td style={{fontWeight:700,color:"var(--text)"}}>₹{r.fees}</td>
                   </tr>
                 ))}
                 <tr style={{ background:"var(--bg3)" }}>
-                  <td colSpan={4} style={{ fontWeight:700, color:"var(--white)", fontSize:13 }}>TOTAL</td>
-                  <td style={{ fontWeight:800, fontSize:14, color:"var(--white)" }}>₹{grandTotal}</td>
+                  <td colSpan={4} style={{ fontWeight:700, color:"var(--text)", fontSize:13 }}>TOTAL</td>
+                  <td style={{ fontWeight:800, fontSize:14, color:"var(--text)" }}>₹{grandTotal}</td>
                 </tr>
               </tbody>
             </table>
@@ -223,7 +223,7 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
               fontFamily: sigStyle ? sigStyle.font.replace(/'/g,"") : "cursive",
               fontSize: sigStyle ? sigStyle.size : 28,
               fontStyle: sigStyle ? sigStyle.slant : "italic",
-              color:"var(--white)", lineHeight:1.2, marginBottom:4
+              color:"var(--text)", lineHeight:1.2, marginBottom:4
             }}>
               {invoiceData.source || "—"}
             </div>
@@ -529,7 +529,17 @@ export default function Reports() {
                     {e.aadhaar_pdf ? (
                       <div style={{ display:"flex", gap:".4rem", marginTop:".75rem", width:"100%" }}>
                         <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
-                          onClick={()=>window.open(e.aadhaar_pdf, "_blank")}>
+                          onClick={()=>{
+                            const url = e.aadhaar_pdf;
+                            // Use Google Docs viewer to render PDF in browser
+                            const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+                            const win = window.open("","_blank","width=900,height=700");
+                            win.document.write(`<html><head><title>Aadhaar - ${e.full_name}</title>
+                              <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1e2433}
+                              iframe{width:100vw;height:100vh;border:none}</style></head>
+                              <body><iframe src="${viewerUrl}" allowfullscreen></iframe></body></html>`);
+                            win.document.close();
+                          }}>
                           👁 View
                         </button>
                         <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}

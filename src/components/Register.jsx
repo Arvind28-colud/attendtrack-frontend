@@ -185,6 +185,7 @@ export default function Register() {
               <label className="form-label">Location</label>
               <input value={LOCATION} disabled style={{ opacity:.6, cursor:"not-allowed" }} />
             </div>
+            {form.source === "TTIPL" && (
             <div style={{ borderTop:"1px solid var(--border)", paddingTop:"1rem", marginTop:".25rem" }}>
               <div style={{ fontSize:11, fontWeight:700, color:"var(--text3)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:".75rem" }}>
                 Account Details (for invoice)
@@ -213,6 +214,15 @@ export default function Register() {
                 </div>
               </div>
             </div>
+            )}
+            {form.source && form.source !== "TTIPL" && (
+              <div style={{ borderTop:"1px solid var(--border)", paddingTop:"1rem", marginTop:".25rem",
+                background:"var(--bg3)", borderRadius:"var(--r)", padding:"10px 14px", marginTop:"1rem",
+                fontSize:12, color:"var(--text3)", display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:16 }}>ℹ</span>
+                <span>Invoice will use <b style={{ color:"var(--text2)" }}>{form.source}</b>'s account details automatically.</span>
+              </div>
+            )}
             {alert && <div className={`alert alert-${alert.type}`}>{alert.msg}</div>}
             <button className="btn btn-primary full-width" onClick={handleSaveDetails}>
               Next → Face Registration
@@ -266,6 +276,8 @@ export default function Register() {
       </div>
     </div>
     <SourceManager />
+=======
+    {step === 1 && <SourceManager />}
   </>
   );
 }

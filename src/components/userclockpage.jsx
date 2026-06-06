@@ -94,12 +94,12 @@ export default function UserClockPage() {
   const emp = employees.find(e => e.id === parseInt(selectedId));
 
   return (
-    <div style={{ minHeight:"100vh", background:"#000", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"1.5rem" }}>
+    <div style={{ minHeight:"100vh", background:"var(--bg)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"1.5rem" }}>
 
       {/* Clock */}
       <div style={{ textAlign:"center", marginBottom:"2rem" }}>
-        <div style={{ fontSize:48, fontWeight:800, color:"#fff", fontVariantNumeric:"tabular-nums", letterSpacing:"-2px" }}>{time}</div>
-        <div style={{ fontSize:13, color:"#666", marginTop:4 }}>{dateStr}</div>
+        <div style={{ fontSize:48, fontWeight:800, color:"var(--text)", fontVariantNumeric:"tabular-nums", letterSpacing:"-2px" }}>{time}</div>
+        <div style={{ fontSize:13, color:"var(--text3)", marginTop:4 }}>{dateStr}</div>
       </div>
 
       <div style={{ width:"100%", maxWidth:420 }}>
@@ -188,8 +188,8 @@ export default function UserClockPage() {
         )}
       </div>
 
-      <div style={{ marginTop:"1.5rem", fontSize:11, color:"#333" }}>
-        Admin? <a href="/admin" style={{ color:"#666", textDecoration:"underline" }}>Login here</a>
+      <div style={{ marginTop:"1.5rem", fontSize:11, color:"var(--text3)" }}>
+        Admin? <a href="/admin" style={{ color:"var(--text3)", textDecoration:"underline" }}>Login here</a>
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ export default function FaceCamera({ knownFaces = [], onMatch, disabled = false 
     setCamState("loading"); setMessage("Starting camera...");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode:"user", width:{ ideal:1280 }, height:{ ideal:720 } }
+        video: { width:{ ideal:1280 }, height:{ ideal:720 } }
       });
       streamRef.current = stream;
       if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
@@ -89,7 +89,7 @@ export default function FaceCamera({ knownFaces = [], onMatch, disabled = false 
     <div style={{ width:"100%" }}>
       <div style={{
         width:"100%", aspectRatio:"4/3", maxHeight:280,
-        background:"#000", borderRadius:"var(--r-lg)",
+        background:"#0d1117", borderRadius:"var(--r-lg)",
         border:"1px solid var(--border2)", overflow:"hidden",
         position:"relative", display:"flex", alignItems:"center", justifyContent:"center"
       }}>

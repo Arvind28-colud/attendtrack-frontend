@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../api/client";
 import { useFaceApi } from "../api/faceApi";
 import RegisterCamera from "./RegisterCamera";
+import SourceManager from "./SourceManager";
 
 const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
 const LOCATION = "Hyderabad Office";
@@ -24,8 +25,12 @@ export default function Register() {
   const [aadhaarAlert, setAadhaarAlert] = useState(null);
   const [uploading,  setUploading]  = useState(false);
   const [done,       setDone]       = useState(false);
+  const [sources,    setSources]    = useState([]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const loadSources = () => api.getSources().then(setSources).catch(()=>{});
+  useEffect(() => { loadSources(); }, []);
 
   // ── Step 1: Details ──────────────────────────────────────────
   const handleSaveDetails = async () => {
@@ -165,8 +170,11 @@ export default function Register() {
               </div>
               <div className="form-group">
                 <label className="form-label">Source (Referred by)</label>
-                <input placeholder="e.g. Raju, Indeed, Walk-in" value={form.source}
-                  onChange={e=>set("source",e.target.value)} />
+                <select value={form.source} onChange={e=>set("source",e.target.value)}>
+                  <option value="">— Select source —</option>
+                  <option value="TTIPL">TTIPL (use employee own account)</option>
+                  {sources.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                </select>
               </div>
             </div>
             <div className="form-group">
@@ -252,6 +260,8 @@ export default function Register() {
           </>
         )}
       </div>
+
+      {step === 1 && <SourceManager onChange={loadSources} />}
     </div>
   );
 }

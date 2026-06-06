@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { api } from "../api/client";
+import { api } from "../api/client;
 
 const DEFAULT_SETTINGS = {
   pay_per_day: 500, ot_pay_per_hr: 100,

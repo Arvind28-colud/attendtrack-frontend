@@ -487,13 +487,13 @@ export default function Reports() {
                     >✕</button>
                     <div
                       className="emp-reg-photo"
-                      onClick={()=>{ if(e.face_image){ const src=e.face_image.startsWith("data:")?e.face_image:`data:image/jpeg;base64,${e.face_image}`; setViewPhoto({src, name:e.full_name}); }}}
+                      onClick={()=>{ if(e.face_image){ setViewPhoto({src:e.face_image, name:e.full_name}); }}}
                       style={{ cursor: e.face_image ? "pointer" : "default", position:"relative" }}
                       title={e.face_image ? "Click to view full photo" : ""}
                     >
                       {e.face_image
                         ? <img
-                            src={e.face_image.startsWith("data:") ? e.face_image : `data:image/jpeg;base64,${e.face_image}`}
+                            src={e.face_image}
                             alt={e.full_name}
                             style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }}
                             onError={ev=>{ ev.target.style.display="none"; ev.target.nextSibling.style.display="flex"; }}
@@ -529,19 +529,15 @@ export default function Reports() {
                     {e.aadhaar_pdf ? (
                       <div style={{ display:"flex", gap:".4rem", marginTop:".75rem", width:"100%" }}>
                         <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
-                          onClick={()=>{
-                            const pdfData = e.aadhaar_pdf.startsWith("data:") ? e.aadhaar_pdf : `data:application/pdf;base64,${e.aadhaar_pdf}`;
-                            const win = window.open("","_blank");
-                            win.document.write(`<html><body style="margin:0"><embed src="${pdfData}" type="application/pdf" width="100%" height="100%"/></body></html>`);
-                            win.document.close();
-                          }}>
+                          onClick={()=>window.open(e.aadhaar_pdf, "_blank")}>
                           👁 View
                         </button>
                         <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
                           onClick={()=>{
                             const link = document.createElement("a");
-                            link.href = e.aadhaar_pdf.startsWith("data:") ? e.aadhaar_pdf : `data:application/pdf;base64,${e.aadhaar_pdf}`;
+                            link.href = e.aadhaar_pdf;
                             link.download = `${e.full_name}-aadhaar.pdf`;
+                            link.target = "_blank";
                             link.click();
                           }}>
                           ↓ Download

@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "../api/client";
-import { useFaceApi } from "../api/faceApi";
+import { getEmbedding, cosineSimilarity } from "../api/arcface";
 import RegisterCamera from "./RegisterCamera";
 
 export default function UserClockPage() {
-  const { ready: faceReady } = useFaceApi();
   const [time,      setTime]      = useState("");
   const [dateStr,   setDateStr]   = useState("");
   const [employees, setEmployees] = useState([]);
@@ -48,14 +47,11 @@ export default function UserClockPage() {
     return "done";
   };
 
-  // euclidean distance
-  const dist = (a, b) => Math.sqrt(a.reduce((s,v,i) => s + (v-b[i])**2, 0));
-
-  const handleCapture = async (descriptor, _imageDataUrl) => {
+  const handleCapture = async (embedding, _imageDataUrl) => {
     setAlert(null);
     setVerifying(true);
 
-    // Verify face matches selected employee
+    // Verify face matches selected employee using ArcFace cosine similarity
     const selFace = allFaces.find(f => f.id === parseInt(selectedId));
     if (!selFace || !selFace.face_descriptor) {
       setAlert({ type:"error", msg:"No face registered for this employee. Contact admin." });
@@ -65,11 +61,14 @@ export default function UserClockPage() {
     const fd = Array.isArray(selFace.face_descriptor) ? selFace.face_descriptor
       : typeof selFace.face_descriptor === "string" ? JSON.parse(selFace.face_descriptor) : null;
 
-    if (!fd) { setAlert({ type:"error", msg:"Face data corrupted. Contact admin." }); setVerifying(false); setStep("select"); return; }
+    if (!fd || fd.length === 0) {
+      setAlert({ type:"error", msg:"Face data corrupted. Contact admin." });
+      setVerifying(false); setStep("select"); return;
+    }
 
-    const d = dist(descriptor, fd);
-    if (d > 0.5) {
-      setAlert({ type:"error", msg:"Face not matched. Please try again or contact admin." });
+    const score = cosineSimilarity(embedding, fd);
+    if (score < 0.4) {
+      setAlert({ type:"error", msg:`Face not matched (${(score*100).toFixed(0)}% similarity). Please try again.` });
       setVerifying(false); setStep("select"); return;
     }
 
@@ -144,9 +143,9 @@ export default function UserClockPage() {
             )}
 
             {selectedId && action !== "done" && (
-              <button className="btn btn-primary full-width" disabled={!faceReady}
+              <button className="btn btn-primary full-width"
                 onClick={() => { setAlert(null); setCamKey(k=>k+1); setStep("capture"); }}>
-                {!faceReady ? "Loading face models..." : action === "clock_in" ? "📷 Capture to Clock In" : "📷 Capture to Clock Out"}
+                {action === "clock_in" ? "📷 Capture to Clock In" : "📷 Capture to Clock Out"}
               </button>
             )}
           </div>

@@ -30,7 +30,20 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
   const getAccountDetails = () => {
     const src = invoiceData.source;
     if (!src) return { account_name:"", account_number:"", ifsc:"", pan:"" };
-    // Find employee whose full_name matches source string
+
+    // TTIPL = use the employee's own account details
+    if (src === "TTIPL") {
+      const emp = invoiceData.employees[0];
+      if (emp) return {
+        account_name:   emp.account_name   || emp.name || "",
+        account_number: emp.account_number || "",
+        ifsc:           emp.ifsc           || "",
+        pan:            emp.pan            || "",
+      };
+      return { account_name:"", account_number:"", ifsc:"", pan:"" };
+    }
+
+    // Otherwise use source person's account (match by name)
     const srcEmp = allEmployees.find(e =>
       e.full_name.toLowerCase().trim() === src.toLowerCase().trim()
     );
@@ -40,6 +53,8 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
       ifsc:           srcEmp.ifsc           || "",
       pan:            srcEmp.pan            || "",
     };
+
+    // Also check source_persons list via allEmployees source field
     return { account_name: src, account_number:"", ifsc:"", pan:"" };
   };
 
@@ -286,9 +301,12 @@ export default function Reports() {
   const [viewPhoto,     setViewPhoto]     = useState(null); // { src, name }
   const [activeTab,     setActiveTab]     = useState("employees"); // "employees" | "payroll"
 
+  const [sourcePersons, setSourcePersons] = useState([]);
+
   useEffect(() => {
     api.getEmployees().then(setEmployees).catch(()=>{});
     api.getSettings().then(setSettings).catch(()=>{});
+    api.getSourcePersons().then(setSourcePersons).catch(()=>{});
   }, []);
 
   // Employees at selected location
@@ -386,7 +404,13 @@ export default function Reports() {
         <InvoiceModal
           invoiceData={invoiceData}
           settings={settings}
-          allEmployees={employees}
+          allEmployees={[...employees, ...sourcePersons.map(s=>({
+            full_name: s.name,
+            account_name: s.account_name,
+            account_number: s.account_number,
+            ifsc: s.ifsc,
+            pan: s.pan,
+          }))]}
           onClose={()=>setInvoiceData(null)}
         />
       )}

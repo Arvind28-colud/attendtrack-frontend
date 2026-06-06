@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../api/client";
 import RegisterCamera from "./RegisterCamera";
 import SourceManager from "./SourceManager";
-import { uploadPdf } from "../api/cloudinary";
+import { uploadPdf } from "../api/Cloudinary";
 
 const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
 const LOCATION = "Hyderabad Office";

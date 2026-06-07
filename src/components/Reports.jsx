@@ -25,13 +25,13 @@ function makeSignature(name) {
 }
 
 // ── Invoice Editor Modal ─────────────────────────────────────────
-function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
-  // Find source person's account details
+function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePersons }) {
+
   const getAccountDetails = () => {
     const src = invoiceData.source;
     if (!src) return { account_name:"", account_number:"", ifsc:"", pan:"" };
 
-    // TTIPL = use the employee's own account details
+    // TTIPL — use first employee's own account (shown per-row in description)
     if (src === "TTIPL") {
       const emp = invoiceData.employees[0];
       if (emp) return {
@@ -43,18 +43,28 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
       return { account_name:"", account_number:"", ifsc:"", pan:"" };
     }
 
-    // Otherwise use source person's account (match by name)
+    // Look in sourcePersons list first (most reliable)
+    const srcPerson = sourcePersons.find(s =>
+      s.name.toLowerCase().trim() === src.toLowerCase().trim()
+    );
+    if (srcPerson) return {
+      account_name:   srcPerson.account_name   || srcPerson.name || "",
+      account_number: srcPerson.account_number || "",
+      ifsc:           srcPerson.ifsc           || "",
+      pan:            srcPerson.pan            || "",
+    };
+
+    // Fallback — look in employees by full_name
     const srcEmp = allEmployees.find(e =>
-      e.full_name.toLowerCase().trim() === src.toLowerCase().trim()
+      (e.full_name || e.name || "").toLowerCase().trim() === src.toLowerCase().trim()
     );
     if (srcEmp) return {
-      account_name:   srcEmp.account_name   || srcEmp.full_name || "",
+      account_name:   srcEmp.account_name   || srcEmp.full_name || srcEmp.name || "",
       account_number: srcEmp.account_number || "",
       ifsc:           srcEmp.ifsc           || "",
       pan:            srcEmp.pan            || "",
     };
 
-    // Also check source_persons list via allEmployees source field
     return { account_name: src, account_number:"", ifsc:"", pan:"" };
   };
 
@@ -111,7 +121,7 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
         .acc-details{font-size:11px;line-height:1.9}
         .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666}
         .sig-area{text-align:left}
-        .sig-text{font-size:15px;font-family:Arial,sans-serif;font-style:normal;color:#111;font-weight:500;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4}
+        .sig-text{font-size:22px;font-family:'Segoe Script','Brush Script MT',cursive;color:#111;letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4}
         .sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-top:5px}
       </style></head><body>${content}</body></html>`);
     win.document.close(); win.focus();
@@ -211,11 +221,21 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
           </div>
 
           {/* Signature preview */}
-          <div style={{ background:"#2c2c2e", border:"1px solid #3a3a3c", borderRadius:"var(--r)", padding:"12px 16px", marginBottom:"1rem" }}>
-            <div style={{ fontSize:10, color:"#636366", textTransform:"uppercase", letterSpacing:".07em", marginBottom:10 }}>Signature</div>
-            <div style={{ fontSize:15, fontWeight:500, color:"#f5f5f7", paddingBottom:8, borderBottom:"1px solid #aeaeb2", display:"inline-block", minWidth:180 }}>
+          <div style={{ background:"#232325", border:"1px solid #3a3a3c", borderRadius:"var(--r)", padding:"14px 16px", marginBottom:"1rem" }}>
+            <div style={{ fontSize:10, color:"#636366", textTransform:"uppercase", letterSpacing:".07em", marginBottom:12 }}>Signature</div>
+            <div style={{
+              fontFamily:"'Segoe Script', 'Brush Script MT', cursive",
+              fontSize:22,
+              color:"#f5f5f7",
+              letterSpacing:"1px",
+              paddingBottom:8,
+              borderBottom:"1px solid #636366",
+              display:"inline-block",
+              minWidth:200,
+            }}>
               {invoiceData.source || "—"}
             </div>
+            <div style={{ fontSize:10, color:"#636366", marginTop:5 }}>Authorised Signatory</div>
           </div>
 
           <button className="btn btn-primary full-width" onClick={handlePrint}>↓ Download as PDF</button>
@@ -390,13 +410,8 @@ export default function Reports() {
         <InvoiceModal
           invoiceData={invoiceData}
           settings={settings}
-          allEmployees={[...employees, ...sourcePersons.map(s=>({
-            full_name: s.name,
-            account_name: s.account_name,
-            account_number: s.account_number,
-            ifsc: s.ifsc,
-            pan: s.pan,
-          }))]}
+          allEmployees={employees}
+          sourcePersons={sourcePersons}
           onClose={()=>setInvoiceData(null)}
         />
       )}

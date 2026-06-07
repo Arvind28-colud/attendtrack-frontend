@@ -93,7 +93,7 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
       <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&family=Sacramento&family=Great+Vibes&display=swap" rel="stylesheet">`;
     const content = printRef.current.innerHTML;
     const win = window.open("","_blank","width=900,height=700");
-    win.document.write(`<html><head><title>Invoice - ${invoiceData.source}</title>${fontLink}
+    win.document.write(`<html><head><title>Invoice - ${invoiceData.source}</title>
       <style>
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:Arial,sans-serif;padding:40px;color:#111;background:#fff;font-size:13px}
@@ -110,9 +110,9 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
         .bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;border-top:1px solid #eee;padding-top:20px}
         .acc-details{font-size:11px;line-height:1.9}
         .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666}
-        .sig-area{text-align:center}
-        .sig-text{font-size:${sigStyle?sigStyle.size:28}px;font-family:${sigStyle?sigStyle.font:"cursive"};font-style:${sigStyle?sigStyle.slant:"italic"};color:#111;line-height:1.1}
-        .sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-top:6px;border-top:1px solid #999;padding-top:4px}
+        .sig-area{text-align:left}
+        .sig-text{font-size:15px;font-family:Arial,sans-serif;font-style:normal;color:#111;font-weight:500;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4}
+        .sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-top:5px}
       </style></head><body>${content}</body></html>`);
     win.document.close(); win.focus();
     setTimeout(() => { win.print(); win.close(); }, 600);
@@ -136,16 +136,10 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
         </div>
 
         <div className="modal-body">
-          {/* Invoice No + Date */}
-          <div className="form-row" style={{ marginBottom:"1rem" }}>
-            <div className="form-group">
-              <label className="form-label">Invoice No</label>
-              <input value={invoiceNo} onChange={e=>setInvoiceNo(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Invoice Date</label>
-              <input type="date" value={invoiceDate} onChange={e=>setInvoiceDate(e.target.value)} />
-            </div>
+          {/* Invoice No only — no date */}
+          <div className="form-group" style={{ marginBottom:"1rem", maxWidth:240 }}>
+            <label className="form-label">Invoice No</label>
+            <input value={invoiceNo} onChange={e=>setInvoiceNo(e.target.value)} />
           </div>
 
           {/* Bill To — fixed */}
@@ -217,17 +211,11 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees }) {
           </div>
 
           {/* Signature preview */}
-          <div style={{ background:"#2c2c2e", border:"1px solid #3a3a3c", borderRadius:"var(--r)", padding:"12px 16px", marginBottom:"1rem", textAlign:"center" }}>
-            <div style={{ fontSize:10, color:"#636366", textTransform:"uppercase", letterSpacing:".07em", marginBottom:8 }}>Signature preview</div>
-            <div style={{
-              fontFamily: sigStyle ? sigStyle.font.replace(/'/g,"") : "cursive",
-              fontSize: sigStyle ? sigStyle.size : 28,
-              fontStyle: sigStyle ? sigStyle.slant : "italic",
-              color:"#f5f5f7", lineHeight:1.2, marginBottom:4
-            }}>
+          <div style={{ background:"#2c2c2e", border:"1px solid #3a3a3c", borderRadius:"var(--r)", padding:"12px 16px", marginBottom:"1rem" }}>
+            <div style={{ fontSize:10, color:"#636366", textTransform:"uppercase", letterSpacing:".07em", marginBottom:10 }}>Signature</div>
+            <div style={{ fontSize:15, fontWeight:500, color:"#f5f5f7", paddingBottom:8, borderBottom:"1px solid #aeaeb2", display:"inline-block", minWidth:180 }}>
               {invoiceData.source || "—"}
             </div>
-            <div style={{ fontSize:10, color:"#636366", borderTop:"1px solid #3a3a3c", paddingTop:4 }}>SIGNATURE</div>
           </div>
 
           <button className="btn btn-primary full-width" onClick={handlePrint}>↓ Download as PDF</button>

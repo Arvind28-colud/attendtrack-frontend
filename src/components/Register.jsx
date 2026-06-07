@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
 import RegisterCamera from "./RegisterCamera";
-import SourceManager from "./sourcemanager";
+import SourceManager from "./SourceManager";
 import { uploadPdf } from "../api/Cloudinary";
 
-const DEPTS = ["Tech Support"];
+const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
-  aadhaar_no:"", department:"",
+  aadhaar_no:"", department:"Engineering",
   source:"", location: LOCATION, shift_hrs: 8,
   account_name:"", account_number:"", ifsc:"", pan:""
 };
@@ -275,8 +275,6 @@ export default function Register() {
         )}
       </div>
     </div>
-    <SourceManager />
-=======
     {step === 1 && <SourceManager />}
   </>
   );

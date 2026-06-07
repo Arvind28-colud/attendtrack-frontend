@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getEmbedding } from "../api/arcface";
-import { uploadImage } from "../api/Cloudinary";
+import { uploadImage } from "../api/cloudinary";
 
 /**
  * RegisterCamera — rectangle box, full picture, manual capture button.
@@ -85,7 +85,7 @@ export default function RegisterCamera({ onCapture }) {
       {/* Rectangle camera box */}
       <div style={{
         width:"100%", aspectRatio:"4/3", maxHeight:280,
-        background:"#1a1a1a", borderRadius:"var(--r-lg)",
+        background:"#1c1c1e", borderRadius:"var(--r-lg)",
         border:"1px solid var(--border2)", overflow:"hidden",
         position:"relative", display:"flex", alignItems:"center", justifyContent:"center"
       }}>
@@ -100,13 +100,13 @@ export default function RegisterCamera({ onCapture }) {
         {state === "loading" && (
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
             <div className="face-spinner large"/>
-            <span style={{ fontSize:12, color:"#aaaaaa" }}>Starting camera...</span>
+            <span style={{ fontSize:12, color:"#636366" }}>Starting camera...</span>
           </div>
         )}
         {state === "error" && (
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, padding:"1rem" }}>
             <span style={{ fontSize:28 }}>⚠</span>
-            <span style={{ fontSize:12, color:"#aaaaaa", textAlign:"center" }}>{message}</span>
+            <span style={{ fontSize:12, color:"#636366", textAlign:"center" }}>{message}</span>
           </div>
         )}
         {state === "done" && (
@@ -137,7 +137,7 @@ export default function RegisterCamera({ onCapture }) {
             alignItems:"center", justifyContent:"center", gap:10
           }}>
             <div className="face-spinner large" style={{ borderTopColor:"#fff" }}/>
-            <span style={{ fontSize:12, color:"#dddddd" }}>Getting embedding...</span>
+            <span style={{ fontSize:12, color:"#aeaeb2" }}>Getting embedding...</span>
           </div>
         )}
       </div>

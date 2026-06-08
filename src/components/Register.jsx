@@ -4,11 +4,11 @@ import RegisterCamera from "./RegisterCamera";
 import SourceManager from "./sourcemanager";
 import { uploadPdf } from "../api/Cloudinary";
 
-const DEPTS = ["Tech Support"];
+const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
-  aadhaar_no:"", department:"",
+  aadhaar_no:"", department:"Engineering",
   source:"", location: LOCATION, shift_hrs: 8,
   account_name:"", account_number:"", ifsc:"", pan:""
 };
@@ -216,8 +216,8 @@ export default function Register() {
             </div>
             )}
             {form.source && form.source !== "TTIPL" && (
-              <div style={{ borderTop:"1px solid var(--border)", paddingTop:"1rem", marginTop:".25rem",
-                background:"var(--bg3)", borderRadius:"var(--r)", padding:"10px 14px", marginTop:"1rem",
+              <div style={{ borderTop:"1px solid var(--border)", marginTop:"1rem",
+                background:"var(--bg3)", borderRadius:"var(--r)", padding:"10px 14px",
                 fontSize:12, color:"var(--text3)", display:"flex", alignItems:"center", gap:8 }}>
                 <span style={{ fontSize:16 }}>ℹ</span>
                 <span>Invoice will use <b style={{ color:"var(--text2)" }}>{form.source}</b>'s account details automatically.</span>

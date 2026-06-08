@@ -118,10 +118,10 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
         td{padding:9px 10px;border-bottom:1px solid #eee;font-size:12px}
         .total-row td{font-weight:800;border-top:2px solid #111;border-bottom:none;font-size:14px}
         .bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;border-top:1px solid #eee;padding-top:20px}
-        .acc-details{font-size:11px;line-height:1.9}
+        .acc-details{font-size:11px;line-height:1.9;white-space:pre-wrap}
         .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666}
         .sig-area{text-align:left}
-        .sig-text{font-size:22px;font-family:'Segoe Script','Brush Script MT',cursive;color:#111;letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4}
+        .sig-text{font-size:22px;font-family:'Segoe Script','Brush Script MT',cursive;color:#111;letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4;white-space:pre-wrap}
         .sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-top:5px}
       </style></head><body>${content}</body></html>`);
     win.document.close(); win.focus();
@@ -275,13 +275,13 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
             <div className="bottom">
               <div className="acc-details">
                 <b>Account Details</b><br/>
-                Payee Name: <span style={{whiteSpace:"pre-wrap"}}>{account.account_name}</span><br/>
+                {`Payee Name: ${account.account_name}`}<br/>
                 Account Number: {account.account_number}<br/>
                 IFSC: {account.ifsc}<br/>
                 PAN: {account.pan}
               </div>
               <div className="sig-area">
-                <div className="sig-text" style={{whiteSpace:"pre-wrap"}}>{invoiceData.source}</div>
+                <div className="sig-text">{invoiceData.source}</div>
                 <div className="sig-label">SIGNATURE</div>
               </div>
             </div>

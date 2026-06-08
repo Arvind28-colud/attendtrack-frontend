@@ -275,13 +275,13 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
             <div className="bottom">
               <div className="acc-details">
                 <b>Account Details</b><br/>
-                {`Payee Name: ${account.account_name}`}<br/>
+                {`Payee Name: ${(account.account_name || "").replace(/ /g, "\u00a0")}`}<br/>
                 Account Number: {account.account_number}<br/>
                 IFSC: {account.ifsc}<br/>
                 PAN: {account.pan}
               </div>
               <div className="sig-area">
-                <div className="sig-text">{invoiceData.source}</div>
+                <div className="sig-text">{(invoiceData.source || "").replace(/ /g, "\u00a0")}</div>
                 <div className="sig-label">SIGNATURE</div>
               </div>
             </div>

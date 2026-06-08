@@ -137,7 +137,11 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
         .sig-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#444}
       </style></head><body>
       <div class="header">
+<<<<<<< HEAD
         <div class="person-name">${invoiceData.source || ""}</div>
+=======
+        <div class="person-name">${account.account_name || invoiceData.source || ""}</div>
+>>>>>>> 8d06322 (Updated Register and Report)
         <div class="inv-info">
           <b>INVOICE NO: ${invoiceNo}</b><br/>
           Invoice Date: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'})}<br/>

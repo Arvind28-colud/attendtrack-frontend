@@ -102,58 +102,80 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
       <tr>
         <td>${r.description || ""}</td>
         <td>${r.ot || ""}</td>
-        <td>₹${r.perDay}</td>
+        <td>${r.perDay}</td>
         <td>${r.totalDays}</td>
-        <td>₹${r.fees}</td>
+        <td>${r.fees}</td>
       </tr>`).join("");
 
-    win.document.write(`<html><head><title>Invoice - ${invoiceData.source}</title>
+    // Use account holder name for signature
+    const sigName = account.account_name || invoiceData.source || "";
+
+    win.document.write(`<!DOCTYPE html><html><head><title>Invoice - ${invoiceData.source}</title>
       <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:Arial,sans-serif;padding:40px;color:#111;background:#fff;font-size:13px}
-        .inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;border-bottom:2px solid #111;padding-bottom:16px}
-        .inv-name{font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
-        .inv-meta{text-align:right;font-size:12px;line-height:1.7}
-        .inv-meta b{font-size:16px;font-weight:800}
-        .bill-to{background:#f5f5f5;padding:12px 16px;border-radius:6px;margin-bottom:24px;font-size:12px;line-height:1.6}
-        .bill-to-label{font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-        table{width:100%;border-collapse:collapse;margin-bottom:24px}
-        th{background:#111;color:#fff;padding:9px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
-        td{padding:9px 10px;border-bottom:1px solid #eee;font-size:12px}
-        .total-row td{font-weight:800;border-top:2px solid #111;border-bottom:none;font-size:14px}
-        .bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;border-top:1px solid #eee;padding-top:20px}
-        .acc-details{font-size:11px;line-height:2;word-spacing:4px;letter-spacing:.3px}
-        .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;display:block;margin-bottom:4px;word-spacing:normal}
-        .sig-area{text-align:left}
-        .sig-text{font-size:22px;font-family:'Segoe Script','Brush Script MT',cursive;color:#111;letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4}
-        .sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-top:5px}
+        body{font-family:Arial,sans-serif;padding:48px;color:#000;background:#fff;font-size:13px}
+        .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+        .person-name{font-size:20px;font-weight:700;color:#000}
+        .inv-info{text-align:right;font-size:12px;line-height:2}
+        .inv-info b{font-size:13px;font-weight:700}
+        .address{font-size:12px;color:#333;margin-bottom:16px;font-style:italic}
+        .bill-to-label{font-size:13px;font-weight:700;font-style:italic;margin-bottom:4px}
+        .bill-to-addr{font-size:12px;font-style:italic;color:#333;margin-bottom:20px;line-height:1.6}
+        table{width:100%;border-collapse:collapse;margin-bottom:0}
+        table,th,td{border:1px solid #000}
+        th{background:#fff;padding:8px 10px;text-align:center;font-size:12px;font-weight:700}
+        td{padding:8px 10px;font-size:12px;vertical-align:middle}
+        td:first-child{text-align:left}
+        td:not(:first-child){text-align:center}
+        .total-label{font-weight:700;font-size:13px;text-align:right !important}
+        .total-val{font-weight:700;font-size:13px}
+        .bottom{margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end}
+        .acc-block{font-size:12px;line-height:2}
+        .acc-block b{font-size:13px;font-weight:700}
+        .sig-block{text-align:center;font-size:13px;font-weight:700;min-width:180px}
+        .sig-name{font-size:16px;font-weight:700;font-family:'Segoe Script','Brush Script MT',cursive;border-bottom:1px solid #000;padding-bottom:6px;margin-bottom:4px;letter-spacing:.5px}
+        .sig-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#444}
       </style></head><body>
-      <div class="inv-header">
-        <div class="inv-name">INVOICE</div>
-        <div class="inv-meta"><b>NO: ${invoiceNo}</b></div>
+      <div class="header">
+        <div class="person-name">${invoiceData.source || ""}</div>
+        <div class="inv-info">
+          <b>INVOICE NO: ${invoiceNo}</b><br/>
+          Invoice Date: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'})}<br/>
+          Address: Hyderabad
+        </div>
       </div>
-      <div class="bill-to">
-        <div class="bill-to-label">Bill To</div>
-        ${BILL_TO}
-      </div>
+      <div class="bill-to-label">BILL TO:</div>
+      <div class="bill-to-addr">Timing Technologies India private Limited, My Home Hub, Hitech City Rd, Patrika Nagar, HITECH City, Hyderabad, Telangana 500081</div>
       <table>
-        <thead><tr><th>Description</th><th>OT</th><th>Per Day</th><th>Total Days</th><th>Fees</th></tr></thead>
+        <thead>
+          <tr>
+            <th style="width:40%">DESCRIPTION</th>
+            <th>OT</th>
+            <th>Per day</th>
+            <th>Total days</th>
+            <th>Fees</th>
+          </tr>
+        </thead>
         <tbody>
           ${tableRows}
-          <tr class="total-row"><td colspan="4">TOTAL</td><td>₹${grandTotal}</td></tr>
+          <tr>
+            <td colspan="3" style="border:none"></td>
+            <td class="total-label">TOTAL</td>
+            <td class="total-val">${grandTotal}</td>
+          </tr>
         </tbody>
       </table>
       <div class="bottom">
-        <div class="acc-details">
-          <b>Account Details</b>
-          Payee Name: <span style="white-space:pre">${account.account_name.trim()}</span><br/>
+        <div class="acc-block">
+          <b>Account Details:-</b><br/>
+          Payee name: ${sigName}<br/>
           Account Number: ${account.account_number}<br/>
           IFSC: ${account.ifsc}<br/>
           PAN: ${account.pan}
         </div>
-        <div class="sig-area">
-          <div class="sig-text"><span style="white-space:pre">${(invoiceData.source || "").trim()}</span></div>
-          <div class="sig-label">Authorised Signatory</div>
+        <div class="sig-block">
+          <div class="sig-name">${sigName}</div>
+          <div class="sig-label">SIGNATURE</div>
         </div>
       </div>
     </body></html>`);
@@ -519,12 +541,11 @@ export default function Reports() {
                       <div style={{ display:"flex", gap:".4rem", marginTop:".75rem", width:"100%" }}>
                         <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
                           onClick={()=>{
-                            const url = e.aadhaar_pdf;
-                            // Use Google Docs viewer to render PDF in browser
-                            const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+                            // Google Docs viewer for viewing
+                            const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(e.aadhaar_pdf)}&embedded=true`;
                             const win = window.open("","_blank","width=900,height=700");
-                            win.document.write(`<html><head><title>Aadhaar - ${e.full_name}</title>
-                              <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1e2433}
+                            win.document.write(`<!DOCTYPE html><html><head><title>Aadhaar - ${e.full_name}</title>
+                              <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1c1c1e}
                               iframe{width:100vw;height:100vh;border:none}</style></head>
                               <body><iframe src="${viewerUrl}" allowfullscreen></iframe></body></html>`);
                             win.document.close();
@@ -532,12 +553,21 @@ export default function Reports() {
                           👁 View
                         </button>
                         <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
-                          onClick={()=>{
-                            const link = document.createElement("a");
-                            link.href = e.aadhaar_pdf;
-                            link.download = `${e.full_name}-aadhaar.pdf`;
-                            link.target = "_blank";
-                            link.click();
+                          onClick={async ()=>{
+                            try {
+                              // Fetch as blob to force PDF download
+                              const res = await fetch(e.aadhaar_pdf);
+                              const blob = await res.blob();
+                              const blobUrl = URL.createObjectURL(new Blob([blob], { type:"application/pdf" }));
+                              const link = document.createElement("a");
+                              link.href = blobUrl;
+                              link.download = `${e.full_name}-aadhaar.pdf`;
+                              link.click();
+                              setTimeout(()=>URL.revokeObjectURL(blobUrl), 3000);
+                            } catch {
+                              // Fallback — open directly
+                              window.open(e.aadhaar_pdf, "_blank");
+                            }
                           }}>
                           ↓ Download
                         </button>

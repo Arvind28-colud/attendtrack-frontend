@@ -81,7 +81,6 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
     totalDays:   e.present || 0,
     fees:        +((e.present || 0) * (settings.pay_per_day || 500)).toFixed(2),
   })));
-  const printRef = useRef(null);
 
   const setAcc = (k, v) => setAccount(a => ({ ...a, [k]: v }));
   const updateRow = (i, field, val) => {
@@ -98,11 +97,16 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
   const grandTotal = rows.reduce((s,r) => s + parseFloat(r.fees||0), 0).toFixed(2);
 
   const handlePrint = () => {
-    // Load cursive fonts for print
-    const fontLink = `<link rel="preconnect" href="https://fonts.googleapis.com">
-      <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&family=Sacramento&family=Great+Vibes&display=swap" rel="stylesheet">`;
-    const content = printRef.current.innerHTML;
     const win = window.open("","_blank","width=900,height=700");
+    const tableRows = rows.map(r => `
+      <tr>
+        <td>${r.description || ""}</td>
+        <td>${r.ot || ""}</td>
+        <td>₹${r.perDay}</td>
+        <td>${r.totalDays}</td>
+        <td>₹${r.fees}</td>
+      </tr>`).join("");
+
     win.document.write(`<html><head><title>Invoice - ${invoiceData.source}</title>
       <style>
         *{box-sizing:border-box;margin:0;padding:0}
@@ -118,12 +122,41 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
         td{padding:9px 10px;border-bottom:1px solid #eee;font-size:12px}
         .total-row td{font-weight:800;border-top:2px solid #111;border-bottom:none;font-size:14px}
         .bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;border-top:1px solid #eee;padding-top:20px}
-        .acc-details{font-size:11px;line-height:1.9;white-space:pre-wrap}
-        .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666}
+        .acc-details{font-size:11px;line-height:2}
+        .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;display:block;margin-bottom:4px}
         .sig-area{text-align:left}
-        .sig-text{font-size:22px;font-family:'Segoe Script','Brush Script MT',cursive;color:#111;letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4;white-space:pre-wrap}
+        .sig-text{font-size:22px;font-family:'Segoe Script','Brush Script MT',cursive;color:#111;letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4}
         .sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-top:5px}
-      </style></head><body>${content}</body></html>`);
+      </style></head><body>
+      <div class="inv-header">
+        <div class="inv-name">INVOICE</div>
+        <div class="inv-meta"><b>NO: ${invoiceNo}</b></div>
+      </div>
+      <div class="bill-to">
+        <div class="bill-to-label">Bill To</div>
+        ${BILL_TO}
+      </div>
+      <table>
+        <thead><tr><th>Description</th><th>OT</th><th>Per Day</th><th>Total Days</th><th>Fees</th></tr></thead>
+        <tbody>
+          ${tableRows}
+          <tr class="total-row"><td colspan="4">TOTAL</td><td>₹${grandTotal}</td></tr>
+        </tbody>
+      </table>
+      <div class="bottom">
+        <div class="acc-details">
+          <b>Account Details</b>
+          Payee Name: ${account.account_name}<br/>
+          Account Number: ${account.account_number}<br/>
+          IFSC: ${account.ifsc}<br/>
+          PAN: ${account.pan}
+        </div>
+        <div class="sig-area">
+          <div class="sig-text">${invoiceData.source || ""}</div>
+          <div class="sig-label">Authorised Signatory</div>
+        </div>
+      </div>
+    </body></html>`);
     win.document.close(); win.focus();
     setTimeout(() => { win.print(); win.close(); }, 600);
   };
@@ -241,53 +274,7 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
           <button className="btn btn-primary full-width" onClick={handlePrint}>↓ Download as PDF</button>
         </div>
 
-        {/* Hidden print template */}
-        <div style={{ display:"none" }}>
-          <div ref={printRef}>
-            <div className="inv-header">
-              <div>
-                <div className="inv-name">INVOICE</div>
-              </div>
-              <div className="inv-meta">
-                <b>NO: {invoiceNo}</b>
-              </div>
-            </div>
-            <div className="bill-to">
-              <div className="bill-to-label">Bill To</div>
-              {BILL_TO}
-            </div>
-            <table>
-              <thead>
-                <tr><th>Description</th><th>OT</th><th>Per Day</th><th>Total Days</th><th>Fees</th></tr>
-              </thead>
-              <tbody>
-                {rows.map((r,i)=>(
-                  <tr key={i}>
-                    <td>{r.description}</td><td>{r.ot}</td>
-                    <td>₹{r.perDay}</td><td>{r.totalDays}</td><td>₹{r.fees}</td>
-                  </tr>
-                ))}
 
-                <tr className="total-row">
-                  <td colSpan={4}>TOTAL</td><td>₹{grandTotal}</td>
-                </tr>
-              </tbody>
-            </table>
-            <div className="bottom">
-              <div className="acc-details">
-                <b>Account Details</b><br/>
-                <span style={{ whiteSpace: "nowrap" }}>Payee Name: {account.account_name || ""}</span><br/>
-                Account Number: {account.account_number}<br/>
-                IFSC: {account.ifsc}<br/>
-                PAN: {account.pan}
-              </div>
-              <div className="sig-area">
-                <div className="sig-text" style={{ whiteSpace: "nowrap" }}>{invoiceData.source || ""}</div>
-                <div className="sig-label">SIGNATURE</div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -122,8 +122,8 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
         td{padding:9px 10px;border-bottom:1px solid #eee;font-size:12px}
         .total-row td{font-weight:800;border-top:2px solid #111;border-bottom:none;font-size:14px}
         .bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;border-top:1px solid #eee;padding-top:20px}
-        .acc-details{font-size:11px;line-height:2}
-        .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;display:block;margin-bottom:4px}
+        .acc-details{font-size:11px;line-height:2;word-spacing:4px;letter-spacing:.3px}
+        .acc-details b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;display:block;margin-bottom:4px;word-spacing:normal}
         .sig-area{text-align:left}
         .sig-text{font-size:22px;font-family:'Segoe Script','Brush Script MT',cursive;color:#111;letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid #999;display:inline-block;min-width:160px;line-height:1.4}
         .sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-top:5px}
@@ -146,13 +146,13 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
       <div class="bottom">
         <div class="acc-details">
           <b>Account Details</b>
-          Payee Name: ${account.account_name}<br/>
+          Payee Name: <span style="white-space:pre">${account.account_name.trim()}</span><br/>
           Account Number: ${account.account_number}<br/>
           IFSC: ${account.ifsc}<br/>
           PAN: ${account.pan}
         </div>
         <div class="sig-area">
-          <div class="sig-text">${invoiceData.source || ""}</div>
+          <div class="sig-text"><span style="white-space:pre">${(invoiceData.source || "").trim()}</span></div>
           <div class="sig-label">Authorised Signatory</div>
         </div>
       </div>

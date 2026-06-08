@@ -107,10 +107,10 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
         <td>${r.fees}</td>
       </tr>`).join("");
 
-    // Use account holder name for signature
-    const sigName = account.account_name || invoiceData.source || "";
+    // Use account holder name for title, top-left heading, and signatures
+    const targetAccountName = account.account_name || invoiceData.source || "";
 
-    win.document.write(`<!DOCTYPE html><html><head><title>Invoice - ${invoiceData.source}</title>
+    win.document.write(`<!DOCTYPE html><html><head><title>Invoice - ${targetAccountName}</title>
       <style>
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:Arial,sans-serif;padding:48px;color:#000;background:#fff;font-size:13px}
@@ -137,11 +137,7 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
         .sig-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#444}
       </style></head><body>
       <div class="header">
-<<<<<<< HEAD
-        <div class="person-name">${invoiceData.source || ""}</div>
-=======
-        <div class="person-name">${account.account_name || invoiceData.source || ""}</div>
->>>>>>> 8d06322 (Updated Register and Report)
+        <div class="person-name">${targetAccountName}</div>
         <div class="inv-info">
           <b>INVOICE NO: ${invoiceNo}</b><br/>
           Invoice Date: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'})}<br/>
@@ -172,13 +168,13 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
       <div class="bottom">
         <div class="acc-block">
           <b>Account Details:-</b><br/>
-          Payee name: ${sigName}<br/>
+          Payee name: ${targetAccountName}<br/>
           Account Number: ${account.account_number}<br/>
           IFSC: ${account.ifsc}<br/>
           PAN: ${account.pan}
         </div>
         <div class="sig-block">
-          <div class="sig-name">${sigName}</div>
+          <div class="sig-name">${targetAccountName}</div>
           <div class="sig-label">SIGNATURE</div>
         </div>
       </div>
@@ -195,7 +191,7 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
         <div className="modal-header">
           <div>
             <div style={{ fontWeight:700, fontSize:15, color:"#f5f5f7" }}>
-              Invoice — {invoiceData.source || "Unknown Source"}
+              Invoice — {account.account_name || invoiceData.source || "Unknown Source"}
             </div>
             <div style={{ fontSize:12, color:"#636366", marginTop:2 }}>
               Edit then download as PDF
@@ -292,14 +288,13 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
               display:"inline-block",
               minWidth:200,
             }}>
-              {invoiceData.source || "—"}
+              {account.account_name || invoiceData.source || "—"}
             </div>
             <div style={{ fontSize:10, color:"#636366", marginTop:5 }}>Authorised Signatory</div>
           </div>
 
           <button className="btn btn-primary full-width" onClick={handlePrint}>↓ Download as PDF</button>
         </div>
-
 
       </div>
     </div>
@@ -377,7 +372,7 @@ export default function Reports() {
     setActiveTab("payroll");
   };
 
-  // CSV download — columns: Name, Dept, Source, Location, Total Days, OT Hrs, Day Pay, OT Pay, Food Allowance
+  // CSV download — columns: Name, Dept, Source, Location, Total Days, ...
   const handleDownloadCSV = () => {
     if (preview.length === 0) { setAlert({ type:"error", msg:"Run Preview first." }); return; }
     const headers = ["Employee Name","Department","Source","Location","Total Days","OT Hours","Day Pay","OT Pay","Food Allowance"];
@@ -445,7 +440,7 @@ export default function Reports() {
         </div>
       )}
 
-      {/* ── Tab switcher ── */}
+      {/* Tab switcher */}
       <div style={{ display:"flex", gap:".5rem", marginBottom:"1rem" }}>
         <button className={`toggle-btn ${activeTab==="employees"?"active":""}`}
           style={{ border:"1px solid #3a3a3c", borderRadius:"var(--r)", padding:"7px 16px" }}
@@ -459,7 +454,7 @@ export default function Reports() {
         </button>
       </div>
 
-      {/* ══ TAB 1: Employee Cards by location ══ */}
+      {/* TAB 1: Employee Cards */}
       {activeTab === "employees" && (
         <div>
           <div className="card">
@@ -545,7 +540,6 @@ export default function Reports() {
                       <div style={{ display:"flex", gap:".4rem", marginTop:".75rem", width:"100%" }}>
                         <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
                           onClick={()=>{
-                            // Google Docs viewer for viewing
                             const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(e.aadhaar_pdf)}&embedded=true`;
                             const win = window.open("","_blank","width=900,height=700");
                             win.document.write(`<!DOCTYPE html><html><head><title>Aadhaar - ${e.full_name}</title>
@@ -559,7 +553,6 @@ export default function Reports() {
                         <button className="btn" style={{ flex:1, fontSize:11, padding:"6px 8px" }}
                           onClick={async ()=>{
                             try {
-                              // Fetch as blob to force PDF download
                               const res = await fetch(e.aadhaar_pdf);
                               const blob = await res.blob();
                               const blobUrl = URL.createObjectURL(new Blob([blob], { type:"application/pdf" }));
@@ -569,7 +562,6 @@ export default function Reports() {
                               link.click();
                               setTimeout(()=>URL.revokeObjectURL(blobUrl), 3000);
                             } catch {
-                              // Fallback — open directly
                               window.open(e.aadhaar_pdf, "_blank");
                             }
                           }}>
@@ -589,11 +581,10 @@ export default function Reports() {
         </div>
       )}
 
-      {/* ══ TAB 2: Payroll & Reports ══ */}
+      {/* TAB 2: Payroll & Reports */}
       {activeTab === "payroll" && (
         <div>
           <div className="grid2">
-            {/* Report generator */}
             <div className="card">
               <div className="card-title">Generate Payroll Report</div>
               <div className="toggle-group" style={{ marginBottom:"1rem" }}>
@@ -623,7 +614,6 @@ export default function Reports() {
               </div>
             </div>
 
-            {/* Pay settings */}
             <div className="card">
               <div className="card-title">Pay Settings</div>
               <div className="form-row">
@@ -652,7 +642,6 @@ export default function Reports() {
             </div>
           </div>
 
-          {/* Preview table */}
           {preview.length > 0 && (
             <div className="card">
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1rem" }}>

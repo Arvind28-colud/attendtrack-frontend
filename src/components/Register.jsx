@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
 import RegisterCamera from "./RegisterCamera";
-import SourceManager from "./SourceManager";
-import { uploadPdf } from "../api/cloudinary";
+import SourceManager from "./sourcemanager";
+import { uploadPdf } from "../api/Cloudinary";
 
 const DEPTS = ["HR-Intern","Tech Support"];
 const LOCATION = "Hyderabad Office";

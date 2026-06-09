@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
 import RegisterCamera from "./RegisterCamera";
-import SourceManager from "./sourcemanager";
-import { uploadPdf } from "../api/Cloudinary";
+import SourceManager from "./SourceManager";
+import { uploadPdf } from "../api/cloudinary";
 
-const DEPTS = ["Tech Support","HR-Intern"];
+const DEPTS = ["HR-Intern","Tech Support"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
@@ -45,6 +45,11 @@ export default function Register() {
     if (!form.source.trim()) { setAlert({ type:"error", msg:"Source (Referred by) is required." }); return; }
     try {
       const res = await api.createEmployee(form);
+      console.log("createEmployee response:", res);
+      if (!res || !res.id) {
+        setAlert({ type:"error", msg:"Registration failed — no employee ID returned. Please try again." });
+        return;
+      }
       setNewEmpId(res.id);
       setAlert(null);
       setStep(2);

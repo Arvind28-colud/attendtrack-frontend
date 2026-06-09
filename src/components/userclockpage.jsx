@@ -87,12 +87,12 @@ export default function UserClockPage() {
     }
     try {
       const result = await api.clock(parseInt(selectedId));
-      if(result.action==="clock_in"){
+      if(result.action==="log_in"){
         setAlert({type:"success",msg:`✓ ${result.emp_name} logged IN at ${result.time}`});
-        setTodayRec({status:"on-duty",clock_in:result.time,clock_out:null});
+        setTodayRec({status:"on-duty",log_in:result.time,log_out:null});
       } else {
         setAlert({type:"success",msg:`✓ ${result.emp_name} logged OUT at ${result.time} · ${result.total_hrs}h`});
-        setTodayRec({status:"present",clock_in:todayRec?.clock_in,clock_out:result.time,total_hrs:result.total_hrs});
+        setTodayRec({status:"present",log_in:todayRec?.log_in,log_out:result.time,total_hrs:result.total_hrs});
       }
       setStep("result");
     } catch(e){
@@ -163,11 +163,11 @@ export default function UserClockPage() {
               <div style={{background:"#232325",border:"1px solid #3a3a3c",borderRadius:"var(--r)",padding:"10px 12px",marginBottom:"1rem",fontSize:12}}>
                 <div style={{display:"flex",justifyContent:"space-between"}}>
                   <span style={{color:"#636366"}}>Log In</span>
-                  <span style={{color:"#f5f5f7"}}>{todayRec.clock_in||"—"}</span>
+                  <span style={{color:"#f5f5f7"}}>{todayRec.log_in||"—"}</span>
                 </div>
                 <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
                   <span style={{color:"#636366"}}>Log Out</span>
-                  <span style={{color:"#f5f5f7"}}>{todayRec.clock_out||"—"}</span>
+                  <span style={{color:"#f5f5f7"}}>{todayRec.log_out||"—"}</span>
                 </div>
                 {todayRec.total_hrs>0 && (
                   <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>

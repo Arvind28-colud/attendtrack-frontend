@@ -6,7 +6,7 @@ export default function Dashboard() {
   const [todayAtt,    setTodayAtt]    = useState([]);
   const [missedOut,   setMissedOut]   = useState([]); // forgot clock-out
   const [error,       setError]       = useState(null);
-  const [markModal,   setMarkModal]   = useState(null); // { emp_id, name, clock_in, date }
+  const [markModal,   setMarkModal]   = useState(null); // { emp_id, name, log_in, date }
   const [markTime,    setMarkTime]    = useState("18:00");
   const [marking,     setMarking]     = useState(false);
   const [markAlert,   setMarkAlert]   = useState(null);
@@ -17,9 +17,9 @@ export default function Dashboard() {
       setTodayAtt(recs);
       const now = new Date();
       const missed = recs.filter(r => {
-        if (r.status !== "on-duty" || !r.clock_in || r.clock_out) return false;
-        // Parse clock_in time and check if 8+ hours have passed
-        const [h, m] = r.clock_in.split(":").map(Number);
+        if (r.status !== "on-duty" || !r.log_in || r.log_out) return false;
+        // Parse log_in time and check if 8+ hours have passed
+        const [h, m] = r.log_in.split(":").map(Number);
         const clockInMs = new Date();
         clockInMs.setHours(h, m, 0, 0);
         const hoursWorked = (now - clockInMs) / (1000 * 60 * 60);
@@ -59,7 +59,7 @@ export default function Dashboard() {
             </div>
             <div className="modal-body">
               <div style={{ marginBottom:"1rem", fontSize:13, color:"var(--text2)" }}>
-                <b style={{ color:"var(--white)" }}>{markModal.name}</b> clocked in at <b style={{ color:"var(--white)" }}>{markModal.clock_in}</b> and never clocked out.
+                <b style={{ color:"var(--white)" }}>{markModal.name}</b> clocked in at <b style={{ color:"var(--white)" }}>{markModal.log_in}</b> and never clocked out.
               </div>
               <div className="form-group">
                 <label className="form-label">Clock-Out Time</label>
@@ -102,7 +102,7 @@ export default function Dashboard() {
             {missedOut.map(r => (
               <button key={r.emp_id} className="btn" style={{ fontSize:11, padding:"5px 10px" }}
                 onClick={() => {
-                  setMarkModal({ emp_id:r.emp_id, name:r.full_name, clock_in:r.clock_in, date:r.date });
+                  setMarkModal({ emp_id:r.emp_id, name:r.full_name, log_in:r.log_in, date:r.date });
                   setMarkTime("18:00");
                 }}>
                 Mark out: {r.full_name.split(" ")[0]}
@@ -145,7 +145,7 @@ export default function Dashboard() {
               <div key={e.emp_id} className="mini-row">
                 <span className="emp-avatar">{e.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</span>
                 <span style={{ fontWeight:500, flex:1 }}>{e.name}</span>
-                <span className="dept-tag">since {e.clock_in}</span>
+                <span className="dept-tag">since {e.log_in}</span>
               </div>
             ))}
         </div>
@@ -189,11 +189,11 @@ export default function Dashboard() {
                       </div>
                     </td>
                     <td><span className="muted">{r.department}</span></td>
-                    <td>{r.clock_in}</td>
+                    <td>{r.log_in}</td>
                     <td>{r.date}</td>
                     <td>
                       <button className="btn" style={{ fontSize:11, padding:"4px 10px" }}
-                        onClick={() => { setMarkModal({ emp_id:r.emp_id, name:r.full_name, clock_in:r.clock_in, date:r.date }); setMarkTime("18:00"); }}>
+                        onClick={() => { setMarkModal({ emp_id:r.emp_id, name:r.full_name, log_in:r.log_in, date:r.date }); setMarkTime("18:00"); }}>
                         Mark Out
                       </button>
                     </td>
@@ -220,8 +220,8 @@ export default function Dashboard() {
                   <tr key={i}>
                     <td><div className="emp-row"><span className="emp-avatar">{r.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span><span style={{ fontWeight:500 }}>{r.full_name}</span></div></td>
                     <td><span className="muted">{r.department}</span></td>
-                    <td>{r.clock_in||"—"}</td>
-                    <td>{r.clock_out || <span style={{ color:"#ff6b6b", fontSize:11 }}>⚠ Not clocked out</span>}</td>
+                    <td>{r.log_in||"—"}</td>
+                    <td>{r.log_out || <span style={{ color:"#ff6b6b", fontSize:11 }}>⚠ Not clocked out</span>}</td>
                     <td>{r.total_hrs>0?`${r.total_hrs}h`:"—"}</td>
                     <td>{r.ot_hrs>0?<span className="badge badge-ot">{r.ot_hrs}h</span>:"—"}</td>
                     <td><span className={`badge badge-${r.status==="present"||r.status==="on-duty"?"in":"absent"}`}>{r.status==="on-duty"?"Working":r.status}</span></td>

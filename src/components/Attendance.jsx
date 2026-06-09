@@ -139,8 +139,8 @@ export default function Attendance() {
                       </div>
                     </td>
                     <td>{r.department}</td>
-                    <td>{r.clock_in  || "—"}</td>
-                    <td>{r.clock_out || "—"}</td>
+                    <td>{r.log_in  || "—"}</td>
+                    <td>{r.log_out || "—"}</td>
                     <td>{r.total_hrs > 0 ? `${r.total_hrs}h` : "—"}</td>
                     <td>{r.ot_hrs > 0 ? <span className="badge badge-ot">{r.ot_hrs}h</span> : "—"}</td>
                     <td>

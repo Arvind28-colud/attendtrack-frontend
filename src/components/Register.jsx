@@ -4,11 +4,11 @@ import RegisterCamera from "./RegisterCamera";
 import SourceManager from "./sourcemanager";
 import { uploadPdf } from "../api/Cloudinary";
 
-const DEPTS = ["HR-Intern","Tech Support"];
+const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin","Tech Support","Management","Security","Housekeeping"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
-  aadhaar_no:"", department:"",
+  aadhaar_no:"", department:"Engineering",
   source:"", location: LOCATION, shift_hrs: 8,
   account_name:"", account_number:"", ifsc:"", pan:""
 };
@@ -239,10 +239,13 @@ export default function Register() {
         {step === 2 && (
           <>
             <div className="card-title">Step 2: Face Registration</div>
+            <div className="alert alert-info" style={{ marginBottom:".75rem" }}>
+              Face capture is required to complete registration.
+            </div>
             <RegisterCamera onCapture={handleFaceCapture} />
             {faceAlert && <div className={`alert alert-${faceAlert.type}`} style={{ marginTop:".5rem" }}>{faceAlert.msg}</div>}
             <button className="btn full-width" style={{ marginTop:"0.5rem", color:"var(--text3)" }} onClick={handleCancelFace}>
-              ← Cancel & go back
+              ← Cancel & discard registration
             </button>
           </>
         )}
@@ -272,9 +275,6 @@ export default function Register() {
             {aadhaarAlert && <div className={`alert alert-${aadhaarAlert.type}`}>{aadhaarAlert.msg}</div>}
             <button className="btn btn-primary full-width" onClick={handleAadhaarUpload} disabled={uploading || !aadhaarFile}>
               {uploading ? "Uploading..." : "Upload & Complete Registration"}
-            </button>
-            <button className="btn full-width" style={{ marginTop:".4rem", color:"var(--text3)" }} onClick={handleSkipAadhaar}>
-              Skip for now
             </button>
           </>
         )}

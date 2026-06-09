@@ -30,6 +30,7 @@ export const api = {
   getDashboard:       ()        => req("/dashboard"),
   getSettings:        ()        => req("/settings"),
   updateSettings:     (data)    => req("/settings", { method:"PUT", body:JSON.stringify(data) }),
+  userLogin:         (username, password) => req("/user/login", { method:"POST", body:JSON.stringify({ username, password }) }),
   login:              (username, password) => req("/admin/login", { method:"POST", body:JSON.stringify({ username, password }) }),
   getSourcePersons:   ()        => req("/source-persons"),
   createSourcePerson: (data)    => req("/source-persons", { method:"POST", body:JSON.stringify(data) }),

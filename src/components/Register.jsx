@@ -4,7 +4,7 @@ import RegisterCamera from "./RegisterCamera";
 import SourceManager from "./sourcemanager";
 import { uploadPdf } from "../api/Cloudinary";
 
-const DEPTS = ["Engineering","HR","Finance","Operations","Sales","Admin","Tech Support","Management","Security","Housekeeping"];
+const DEPTS = ["Tech Support","HR-Intern"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
@@ -43,6 +43,7 @@ export default function Register() {
       setAlert({ type:"error", msg:"Aadhaar must be exactly 12 digits." }); return;
     }
     if (!form.source.trim()) { setAlert({ type:"error", msg:"Source (Referred by) is required." }); return; }
+    if (!form.department) { setAlert({ type:"error", msg:"Please select a department." }); return; }
     try {
       const res = await api.createEmployee(form);
       console.log("createEmployee response:", res);
@@ -174,6 +175,7 @@ export default function Register() {
               <div className="form-group">
                 <label className="form-label">Department</label>
                 <select value={form.department} onChange={e=>set("department",e.target.value)}>
+                  <option value="">— Select department —</option>
                   {DEPTS.map(d=><option key={d}>{d}</option>)}
                 </select>
               </div>

@@ -31,15 +31,20 @@ function InvoiceModal({ invoiceData, settings, onClose, allEmployees, sourcePers
     const src = invoiceData.source;
     if (!src) return { account_name:"", account_number:"", ifsc:"", pan:"" };
 
-    // TTIPL — use first employee's own account (shown per-row in description)
+    // TTIPL — use that specific employee's own account details from DB
     if (src === "TTIPL") {
       const emp = invoiceData.employees[0];
-      if (emp) return {
-        account_name:   emp.account_name   || emp.name || "",
-        account_number: emp.account_number || "",
-        ifsc:           emp.ifsc           || "",
-        pan:            emp.pan            || "",
-      };
+      if (emp) {
+        const fullEmp = allEmployees.find(e =>
+          (e.full_name || "").toLowerCase().trim() === (emp.name || "").toLowerCase().trim()
+        );
+        return {
+          account_name:   fullEmp?.account_name   || emp.account_name   || emp.name || "",
+          account_number: fullEmp?.account_number || emp.account_number || "",
+          ifsc:           fullEmp?.ifsc           || emp.ifsc           || "",
+          pan:            fullEmp?.pan            || emp.pan            || "",
+        };
+      }
       return { account_name:"", account_number:"", ifsc:"", pan:"" };
     }
 
@@ -398,8 +403,29 @@ export default function Reports() {
     return acc;
   }, {});
 
-  const handleOpenInvoice = (src) => {
-    setInvoiceData({ source: src, employees: sourceGroups[src] });
+  // For TTIPL — separate invoice per employee
+  // For others — grouped by source person
+  const invoiceButtons = Object.keys(sourceGroups).flatMap(src => {
+    if (src === "TTIPL") {
+      // One button per employee
+      return sourceGroups[src].map(emp => ({
+        label: `📄 Invoice: ${emp.name}`,
+        source: "TTIPL",
+        employees: [emp],
+        accountEmp: emp, // use employee's own account
+      }));
+    }
+    // Grouped under source person
+    return [{
+      label: `📄 Invoice: ${src}`,
+      source: src,
+      employees: sourceGroups[src],
+      accountEmp: null,
+    }];
+  });
+
+  const handleOpenInvoice = (src, emps) => {
+    setInvoiceData({ source: src, employees: emps });
   };
 
   const set = (k, v) => setSettings(s => ({ ...s, [k]: v }));
@@ -655,11 +681,11 @@ export default function Reports() {
                 <div className="card-title" style={{ marginBottom:0 }}>
                   Pay Summary — {preview.length} employee{preview.length!==1?"s":""}
                 </div>
-                <div style={{ display:"flex", gap:".5rem" }}>
-                  {Object.keys(sourceGroups).map(src=>(
-                    <button key={src} className="btn" style={{ fontSize:11, padding:"5px 10px" }}
-                      onClick={()=>handleOpenInvoice(src)}>
-                      📄 Invoice: {src}
+                <div style={{ display:"flex", gap:".5rem", flexWrap:"wrap" }}>
+                  {invoiceButtons.map((btn, i)=>(
+                    <button key={i} className="btn" style={{ fontSize:11, padding:"5px 10px" }}
+                      onClick={()=>handleOpenInvoice(btn.source, btn.employees)}>
+                      {btn.label}
                     </button>
                   ))}
                 </div>

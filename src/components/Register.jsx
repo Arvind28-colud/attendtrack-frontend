@@ -8,7 +8,7 @@ const DEPTS = ["Tech Support","HR-Intern"];
 const LOCATION = "Hyderabad Office";
 const empty = {
   full_name:"", father_name:"", phone:"", email:"",
-  aadhaar_no:"", department:"",
+  aadhaar_no:"", department:"Engineering",
   source:"", location: LOCATION, shift_hrs: 8,
   account_name:"", account_number:"", ifsc:"", pan:""
 };
@@ -43,8 +43,14 @@ export default function Register() {
       setAlert({ type:"error", msg:"Aadhaar must be exactly 12 digits." }); return;
     }
     if (!form.source.trim()) { setAlert({ type:"error", msg:"Source (Referred by) is required." }); return; }
+    if (!form.department) { setAlert({ type:"error", msg:"Please select a department." }); return; }
     try {
       const res = await api.createEmployee(form);
+      console.log("createEmployee response:", res);
+      if (!res || !res.id) {
+        setAlert({ type:"error", msg:"Registration failed — no employee ID returned. Please try again." });
+        return;
+      }
       setNewEmpId(res.id);
       setAlert(null);
       setStep(2);
@@ -169,6 +175,7 @@ export default function Register() {
               <div className="form-group">
                 <label className="form-label">Department</label>
                 <select value={form.department} onChange={e=>set("department",e.target.value)}>
+                  <option value="">— Select department —</option>
                   {DEPTS.map(d=><option key={d}>{d}</option>)}
                 </select>
               </div>
@@ -234,10 +241,13 @@ export default function Register() {
         {step === 2 && (
           <>
             <div className="card-title">Step 2: Face Registration</div>
+            <div className="alert alert-info" style={{ marginBottom:".75rem" }}>
+              Face capture is required to complete registration.
+            </div>
             <RegisterCamera onCapture={handleFaceCapture} />
             {faceAlert && <div className={`alert alert-${faceAlert.type}`} style={{ marginTop:".5rem" }}>{faceAlert.msg}</div>}
             <button className="btn full-width" style={{ marginTop:"0.5rem", color:"var(--text3)" }} onClick={handleCancelFace}>
-              ← Cancel & go back
+              ← Cancel & discard registration
             </button>
           </>
         )}
@@ -267,9 +277,6 @@ export default function Register() {
             {aadhaarAlert && <div className={`alert alert-${aadhaarAlert.type}`}>{aadhaarAlert.msg}</div>}
             <button className="btn btn-primary full-width" onClick={handleAadhaarUpload} disabled={uploading || !aadhaarFile}>
               {uploading ? "Uploading..." : "Upload & Complete Registration"}
-            </button>
-            <button className="btn full-width" style={{ marginTop:".4rem", color:"var(--text3)" }} onClick={handleSkipAadhaar}>
-              Skip for now
             </button>
           </>
         )}

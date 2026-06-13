@@ -27,10 +27,16 @@ const NAV_ICONS = {
 };
 
 function AdminApp() {
-  const [admin,  setAdmin]  = useState(null);
+  const [admin,  setAdmin]  = useState(() => {
+    const saved = sessionStorage.getItem("admin");
+    return saved ? JSON.parse(saved) : null;
+  });
   const [active, setActive] = useState("dashboard");
 
-  if (!admin) return <Login onLogin={setAdmin} />;
+  const handleLogin = (a) => { sessionStorage.setItem("admin", JSON.stringify(a)); setAdmin(a); };
+  const handleLogout = () => { sessionStorage.removeItem("admin"); setAdmin(null); };
+
+  if (!admin) return <Login onLogin={handleLogin} />;
 
   const render = () => {
     switch(active) {
@@ -56,7 +62,7 @@ function AdminApp() {
         </div>
         <div className="nav-right">
           <span className="nav-user">👤 {admin.username}</span>
-          <button className="btn-logout" onClick={() => setAdmin(null)}>Logout</button>
+          <button className="btn-logout" onClick={handleLogout}>Logout</button>
         </div>
       </nav>
 

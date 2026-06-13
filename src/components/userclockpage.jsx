@@ -5,7 +5,7 @@ import RegisterCamera from "./RegisterCamera";
 
 export default function UserClockPage() {
   // ── Auth ──────────────────────────────────────────────────────
-  const [authed,    setAuthed]    = useState(false);
+  const [authed,    setAuthed]    = useState(() => sessionStorage.getItem("userAuthed") === "true");
   const [username,  setUsername]  = useState("");
   const [password,  setPassword]  = useState("");
   const [authError, setAuthError] = useState("");
@@ -42,6 +42,7 @@ export default function UserClockPage() {
     setAuthError(""); setAuthLoad(true);
     try {
       await api.userLogin(username, password);
+      sessionStorage.setItem("userAuthed", "true");
       setAuthed(true);
     } catch(e) {
       setAuthError(e.message || "Invalid username or password.");
@@ -226,7 +227,7 @@ export default function UserClockPage() {
       </div>
 
       <div style={{marginTop:"1.5rem",fontSize:11,color:"#48484a",display:"flex",gap:"1rem"}}>
-        <button onClick={()=>setAuthed(false)} style={{background:"none",border:"none",color:"#636366",fontSize:11,cursor:"pointer",textDecoration:"underline"}}>Sign out</button>
+        <button onClick={()=>{ sessionStorage.removeItem("userAuthed"); setAuthed(false); }} style={{background:"none",border:"none",color:"#636366",fontSize:11,cursor:"pointer",textDecoration:"underline"}}>Sign out</button>
         <a href="/admin" style={{color:"#636366",textDecoration:"underline"}}>Admin login</a>
       </div>
     </div>

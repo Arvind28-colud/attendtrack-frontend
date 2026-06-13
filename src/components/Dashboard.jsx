@@ -59,7 +59,7 @@ export default function Dashboard() {
             </div>
             <div className="modal-body">
               <div style={{ marginBottom:"1rem", fontSize:13, color:"var(--text2)" }}>
-                <b style={{ color:"var(--white)" }}>{markModal.name}</b> clocked in at <b style={{ color:"var(--white)" }}>{markModal.log_in}</b> and never clocked out.
+                <b style={{ color:"var(--white)" }}>{markModal.name}</b> Logged in at <b style={{ color:"var(--white)" }}>{markModal.log_in}</b> and never clocked out.
               </div>
               <div className="form-group">
                 <label className="form-label">Clock-Out Time</label>
@@ -91,7 +91,7 @@ export default function Dashboard() {
             }}>{missedOut.length}</div>
             <div>
               <div style={{ fontWeight:700, fontSize:13, color:"var(--white)" }}>
-                Forgot to Clock Out
+                Forgot to Log Out
               </div>
               <div style={{ fontSize:12, color:"var(--text3)" }}>
                 {missedOut.map(r=>r.full_name).join(", ")}
@@ -122,7 +122,7 @@ export default function Dashboard() {
         <div className="metric metric-dark">
           <div className="metric-label">Present Today</div>
           <div className="metric-value">{data.present}</div>
-          <div className="metric-sub">clocked in</div>
+          <div className="metric-sub">Logged in</div>
         </div>
         <div className="metric metric-light" style={{ position:"relative" }}>
           <div className="metric-label">Absent Today</div>
@@ -167,7 +167,7 @@ export default function Dashboard() {
       {missedOut.length > 0 && (
         <div className="card">
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:"1rem" }}>
-            <div className="card-title" style={{ marginBottom:0 }}>Forgot to Clock Out</div>
+            <div className="card-title" style={{ marginBottom:0 }}>Forgot to Log Out</div>
             <div style={{
               width:20, height:20, borderRadius:4, background:"var(--white)",
               color:"var(--black)", fontSize:11, fontWeight:800,
@@ -177,7 +177,7 @@ export default function Dashboard() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Employee</th><th>Department</th><th>Clock In</th><th>Date</th><th>Action</th></tr>
+                <tr><th>Employee</th><th>Department</th><th>Log In</th><th>Date</th><th>Action</th></tr>
               </thead>
               <tbody>
                 {missedOut.map((r,i) => (
@@ -211,7 +211,7 @@ export default function Dashboard() {
         <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>Employee</th><th>Dept</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>OT</th><th>Status</th></tr>
+              <tr><th>Employee</th><th>Dept</th><th>Log In</th><th>Log Out</th><th>Hours</th><th>OT</th><th>Status</th></tr>
             </thead>
             <tbody>
               {todayAtt.length === 0
@@ -221,7 +221,7 @@ export default function Dashboard() {
                     <td><div className="emp-row"><span className="emp-avatar">{r.full_name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</span><span style={{ fontWeight:500 }}>{r.full_name}</span></div></td>
                     <td><span className="muted">{r.department}</span></td>
                     <td>{r.log_in||"—"}</td>
-                    <td>{r.log_out || <span style={{ color:"#ff6b6b", fontSize:11 }}>⚠ Not clocked out</span>}</td>
+                    <td>{r.log_out || <span style={{ color:"#ff6b6b", fontSize:11 }}>⚠ Not logged out</span>}</td>
                     <td>{r.total_hrs>0?`${r.total_hrs}h`:"—"}</td>
                     <td>{r.ot_hrs>0?<span className="badge badge-ot">{r.ot_hrs}h</span>:"—"}</td>
                     <td><span className={`badge badge-${r.status==="present"||r.status==="on-duty"?"in":"absent"}`}>{r.status==="on-duty"?"Working":r.status}</span></td>

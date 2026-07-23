@@ -240,10 +240,43 @@ input::placeholder{color:var(--text3)}
 .alert-info   {background:rgba(139, 92, 246, 0.10);color:#a78bfa;border:1px solid rgba(139, 92, 246, 0.2)}
 
 /* ── Table ──────────────────────────────────────────────────── */
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-thead tr{background:rgba(139, 92, 246, 0.05)}
-th{text-align:left;padding:12px 16px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid var(--border)}
+.table-wrap{
+  overflow-x:auto;
+  border-radius:var(--r);
+}
+.table-wrap::-webkit-scrollbar, ::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+.table-wrap::-webkit-scrollbar-track, ::-webkit-scrollbar-track{
+  background:rgba(255, 255, 255, 0.03);
+  border-radius:4px;
+}
+.table-wrap::-webkit-scrollbar-thumb, ::-webkit-scrollbar-thumb{
+  background:rgba(139, 92, 246, 0.4);
+  border-radius:4px;
+  border:2px solid transparent;
+}
+.table-wrap::-webkit-scrollbar-thumb:hover, ::-webkit-scrollbar-thumb:hover{
+  background:rgba(139, 92, 246, 0.7);
+}
+
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+thead tr{background:#161820}
+th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:#161820;
+  text-align:left;
+  padding:12px 16px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--text2);
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  border-bottom:2px solid var(--border);
+}
 td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(139, 92, 246, 0.03)}

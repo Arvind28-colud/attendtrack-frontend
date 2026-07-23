@@ -223,7 +223,7 @@ export default function Attendance() {
           Attendance Records
           <span className="muted" style={{ fontWeight:400, marginLeft:8 }}>({records.length} records)</span>
         </div>
-        <div className="table-wrap" style={{ maxHeight: "550px", overflowY: "auto" }}>
+        <div className="table-wrap" style={{ maxHeight: "500px", overflowY: "auto", overflowX: "auto" }}>
           <table>
             <thead>
               <tr>

@@ -34,7 +34,7 @@ export default function Register() {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   // ── Step 1: Details ──────────────────────────────────────────
-  const handleSaveDetails = async () => {
+  const handleSaveDetails = () => {
     setAlert(null);
     if (!form.full_name.trim()) { setAlert({ type: "error", msg: "Full name is required." }); return; }
     if (!form.father_name.trim()) { setAlert({ type: "error", msg: "Father name is required." }); return; }
@@ -46,39 +46,51 @@ export default function Register() {
     if (!form.source.trim()) { setAlert({ type: "error", msg: "Source (Referred by) is required." }); return; }
     if (!form.department) { setAlert({ type: "error", msg: "Please select a department." }); return; }
     if (!form.project_name) { setAlert({ type: "error", msg: "Project name is required." }); return; }
-    try {
-      const res = await api.createEmployee(form);
-      console.log("createEmployee response:", res);
-      if (!res || !res.id) {
-        setAlert({ type: "error", msg: "Registration failed — no employee ID returned. Please try again." });
-        return;
-      }
-      setNewEmpId(res.id);
-      setAlert(null);
-      setStep(2);
-    } catch (e) {
-      setAlert({ type: "error", msg: e.message });
-    }
+
+    setAlert(null);
+    setStep(2);
   };
 
-  // ── Step 2: Face capture ─────────────────────────────────────
+  // ── Step 2: Face capture & DB Registration ───────────────────
   const handleFaceCapture = async (descriptor, imageDataUrl) => {
     setFaceAlert(null);
     setCapturedImg(imageDataUrl);
-    const empId = newEmpId; // capture current value to avoid stale closure
-    if (!empId) { setFaceAlert({ type: "error", msg: "Employee ID missing. Please go back and try again." }); return; }
+
+    if (!descriptor || descriptor.length === 0) {
+      setFaceAlert({ type: "error", msg: "Face capture failed — no face vector generated. Candidate details were NOT registered." });
+      return;
+    }
+
     try {
-      await api.updateFace(empId, descriptor);
+      setFaceAlert({ type: "info", msg: "Registering candidate details & face embedding..." });
+
+      // Save details AND face descriptor atomically in DB
+      const payload = {
+        ...form,
+        face_descriptor: descriptor
+      };
+
+      const res = await api.createEmployee(payload);
+      console.log("createEmployee response:", res);
+
+      if (!res || !res.id) {
+        throw new Error("Registration failed — server did not return employee ID.");
+      }
+
+      const empId = res.id;
+      setNewEmpId(empId);
+
+      // Upload face thumbnail image
       if (imageDataUrl) {
         await api.updateFaceImage(empId, imageDataUrl);
       }
-      setFaceAlert({ type: "success", msg: "Face registered! Now upload Aadhaar PDF." });
+
+      setFaceAlert({ type: "success", msg: "Candidate & Face registered successfully! Now upload Aadhaar PDF." });
       setStep(3);
     } catch (e) {
-      await api.deleteEmployee(empId).catch(() => { });
+      console.error("Registration error:", e);
       setNewEmpId(null);
-      setFaceAlert({ type: "error", msg: "Failed to save face. Employee removed. Try again: " + e.message });
-      setTimeout(() => { setStep(1); setFaceAlert(null); }, 3000);
+      setFaceAlert({ type: "error", msg: "Registration failed: " + e.message + " — Candidate details were NOT saved." });
     }
   };
 
@@ -116,9 +128,12 @@ export default function Register() {
     }, 1500);
   };
 
-  const handleCancelFace = async () => {
-    if (newEmpId) await api.deleteEmployee(newEmpId).catch(() => { });
-    setNewEmpId(null); setStep(1); setFaceAlert(null); setAlert(null);
+  const handleCancelFace = () => {
+    setNewEmpId(null);
+    setCapturedImg(null);
+    setStep(1);
+    setFaceAlert(null);
+    setAlert(null);
   };
 
   if (done) {

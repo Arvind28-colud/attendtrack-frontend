@@ -20,6 +20,9 @@ export default function RegisterCamera({ onCapture }) {
   const [facingMode, setFacingMode] = useState("user");
 
   const stopCamera = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
@@ -34,45 +37,70 @@ export default function RegisterCamera({ onCapture }) {
       setMessage("Starting camera...");
       setPreview(null);
 
-      // Stop any existing tracks before initializing new ones
+      // Stop any existing tracks & clear video element before initializing new ones
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(t => t.stop());
         streamRef.current = null;
       }
 
       let stream = null;
+      let lastErr = null;
+
+      // 1. Try flexible constraints first (ideal facingMode)
       try {
-        // 1. Try strict facingMode constraint first for mobile switching
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: facingMode } }
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
         });
       } catch (e1) {
-        console.warn("Exact facingMode failed, trying ideal:", e1.message);
+        lastErr = e1;
+        console.warn("Ideal facingMode failed, trying generic video=true:", e1.message);
         try {
-          // 2. Fallback to ideal facingMode
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: facingMode } }
-          });
+          // 2. Fallback to generic video=true
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
         } catch (e2) {
-          console.warn("Ideal facingMode failed, trying generic fallback:", e2.message);
+          lastErr = e2;
+          console.warn("Generic video=true failed, trying exact facingMode:", e2.message);
           try {
-            // 3. Standard fallback
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            // 3. Fallback to exact facingMode (for specific mobile devices)
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { exact: facingMode } }
+            });
           } catch (e3) {
-            console.error("All camera initialization attempts failed:", e3.message);
-            if (active) {
-              setState("error");
-              setMessage("Camera access denied. Please allow camera permission.");
-            }
-            return;
+            lastErr = e3;
+            console.error("All camera initialization attempts failed:", e3);
           }
         }
       }
 
-      if (!active) {
-        if (stream) {
-          stream.getTracks().forEach(t => t.stop());
+      if (!stream) {
+        if (active) {
+          setState("error");
+          let errText = "Camera access failed.";
+          if (lastErr) {
+            if (lastErr.name === "NotReadableError" || lastErr.name === "TrackStartError") {
+              errText = "Camera is being used by another application (Zoom, Teams, or another browser tab). Please close other camera apps and retry.";
+            } else if (lastErr.name === "NotAllowedError" || lastErr.name === "PermissionDeniedError") {
+              errText = "Camera access denied. Please click the camera/lock icon in your browser address bar and select 'Allow'.";
+            } else if (lastErr.name === "NotFoundError" || lastErr.name === "DevicesNotFoundError") {
+              errText = "No camera hardware detected on this device.";
+            } else {
+              errText = `Camera Error (${lastErr.name}): ${lastErr.message}`;
+            }
+          }
+          setMessage(errText);
         }
+        return;
+      }
+
+      if (!active) {
+        stream.getTracks().forEach(t => t.stop());
         return;
       }
 
@@ -93,6 +121,9 @@ export default function RegisterCamera({ onCapture }) {
 
     return () => {
       active = false;
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(t => t.stop());
         streamRef.current = null;

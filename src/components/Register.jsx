@@ -70,7 +70,7 @@ export default function Register() {
     try {
       await api.updateFace(empId, descriptor);
       if (imageDataUrl) {
-        await api.updateFaceImage(empId, imageDataUrl).catch(() => { });
+        await api.updateFaceImage(empId, imageDataUrl);
       }
       setFaceAlert({ type: "success", msg: "Face registered! Now upload Aadhaar PDF." });
       setStep(3);
